@@ -1,0 +1,27 @@
+name: Bug report
+description: Report a reproducible benchmark or runtime issue (sanitized logs only)
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not post private prompts, tokens, IPs, hostnames, serials or unredacted logs."
+  - type: textarea
+    id: what
+    attributes:
+      label: Actual versus expected behavior
+      description: What failed, what was expected, and whether it is reproducible
+    validations:
+      required: true
+  - type: textarea
+    id: versions
+    attributes:
+      label: Environment and reproducer
+      description: JetPack, CUDA, container digest, model revision, relevant flags, sanitized minimal commands
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Redacted evidence and mitigation
+      description: Exact error strings, sanitized observations, mitigations tried

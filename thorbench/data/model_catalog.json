@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "models": [
+    {
+      "served_model_name": "Qwen3.8-Flash-Next",
+      "checkpoint_repo": "local-inference-lab/Qwen3.8-Flash-Next-NVFP4",
+      "checkpoint_url": "https://huggingface.co/local-inference-lab/Qwen3.8-Flash-Next-NVFP4",
+      "model_family": "Qwen3.8 Flash Next",
+      "quantization": "NVFP4 (mixed precision; see checkpoint card)",
+      "architecture": "Qwen4ExpForConditionalGeneration",
+      "license_note": "Model license is separate from benchmark MIT license; check its model card and NVIDIA Jetson AI Lab entry.",
+      "reference_url": "https://www.jetson-ai-lab.com/models/qwen3-8-flash-next/",
+      "tested_device": "NVIDIA Jetson AGX Thor 128GB",
+      "native_context_tokens": 262144,
+      "max_context_configured_baseline": 212992,
+      "parameters_billion_approx": 125,
+      "activated_parameters_billion_approx": 6,
+      "note": "Checkpoint and deployment settings are independent of public third-party benchmarks."
+    }
+  ]
+}

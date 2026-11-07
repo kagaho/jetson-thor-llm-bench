@@ -10,6 +10,8 @@ from pathlib import Path
 
 from .client import APIError, VLLMClient
 from .report import new_run_dir, save_row, summarize
+from .reference import model_metadata, list_references, compare_local_run
+from . import __version__
 from .scenarios import NEEDLE, case_context, case_quick, case_reasoning, case_vision
 from .system import snapshot
 
@@ -21,6 +23,9 @@ def build_parser():
     parser.add_argument("--timeout", type=int, default=600)
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("doctor", help="Check health, models, and configured context length")
+    sub.add_parser("references", help="List verified model sources and reported public benchmarks (offline)")
+    compare = sub.add_parser("compare", help="Compare a local result with public references; no cross-protocol ratios")
+    compare.add_argument("--run", type=Path, required=True, help="Path to a results/<timestamp>-<suite> folder")
     bench = sub.add_parser("bench", help="Run sequential benchmarks and write results")
     bench.add_argument("--suite", choices=["quick", "reasoning", "context", "vision"], default="quick")
     bench.add_argument("--runs", type=int, default=3)
@@ -33,6 +38,12 @@ def build_parser():
 
 
 def run(args) -> int:
+    if args.command == "references":
+        print(list_references())
+        return 0
+    if args.command == "compare":
+        print(compare_local_run(args.run))
+        return 0
     client = VLLMClient(args.base_url, args.model, args.timeout)
     if args.command == "doctor":
         ok = client.health()
@@ -41,6 +52,8 @@ def run(args) -> int:
         print(json.dumps({
             "healthy": ok, "model_found": selected is not None,
             "model": args.model, "max_model_len": selected.get("max_model_len") if selected else None,
+            "model_provenance": model_metadata(args.model),
+            "bench_version": __version__,
             "platform": snapshot(),
         }, indent=2))
         return 0 if ok and selected else 2
@@ -78,6 +91,8 @@ def run(args) -> int:
         "suite": args.suite,
         "date_utc": datetime.now(timezone.utc).isoformat(),
         "model": args.model,
+        "model_provenance": model_metadata(args.model),
+        "bench_version": __version__,
         "max_model_len": max_model_len,
         "platform": snapshot(),
         "runs_per_scenario": args.runs,

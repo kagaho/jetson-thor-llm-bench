@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "comparison_warning": "Different checkpoint variants, benchmarks, prompts, decoding modes, quantization, concurrency, and metrics. Values are external published claims, NOT measurements by this project. Do not rank systems or compute speedups across unmatched protocols.",
+  "references": [
+    {
+      "id": "jetson-ai-lab-recipe",
+      "title": "NVIDIA Jetson AI Lab Thor model recipe",
+      "url": "https://www.jetson-ai-lab.com/models/qwen3-8-flash-next/",
+      "publication_date": null,
+      "kind": "deployment_reference",
+      "hardware": "Jetson AGX Thor 128GB",
+      "checkpoint": "Qwen3.8 Flash Next NVFP4 (recipe)",
+      "runtime": "vLLM",
+      "workload": "Not a published benchmark in this entry",
+      "reported_metric": null,
+      "reported_value": null,
+      "unit": null,
+      "notes": "Official deployment reference, not a timed performance result."
+    },
+    {
+      "id": "leibniz-hbi-thor-vllm",
+      "title": "Leibniz-HBI single-stream Thor vLLM recipe",
+      "url": "https://github.com/Leibniz-HBI/Qwen3.8-Flash-Next-Jetson-Thor-vLLM",
+      "publication_date": "2026-08-29",
+      "kind": "community_report",
+      "hardware": "Jetson AGX Thor 128GB",
+      "checkpoint": "RadixArk/Qwen3.8-Flash-Next-NVFP4",
+      "runtime": "patched vLLM with PLE mmap, Marlin fallback and MTP=1",
+      "workload": "single-stream local prompt, non-eager, MTP=1",
+      "reported_metric": "decode throughput, approximate range",
+      "reported_value": "23\u201324",
+      "unit": "tokens/s",
+      "notes": "Prompt/clock-dependent engineering report; NOT the same checkpoint, flags or fixed prompt as Shockwave."
+    },
+    {
+      "id": "nvidia-forum-fp8-hybrid",
+      "title": "NVIDIA forum: FP8-hybrid Thor sgbench result",
+      "url": "https://forums.developer.nvidia.com/t/qwen3-8-flash-next-at-46-7-tok-s-on-jetson-agx-thor/383269",
+      "publication_date": "2026-09-14",
+      "kind": "community_report",
+      "hardware": "Jetson AGX Thor 128GB",
+      "checkpoint": "RadixArk NVFP4 plus FP8-hybrid converted side weights",
+      "runtime": "custom vLLM recipe, MTP=3",
+      "workload": "sgbench C1 weighted average of Code, JSON, LongCode; end-to-end output rate",
+      "reported_metric": "weighted output throughput",
+      "reported_value": 46.7,
+      "unit": "tokens/s",
+      "notes": "Different checkpoint and benchmark workload from Shockwave; includes prefill and TTFT. Not directly comparable."
+    }
+  ]
+}

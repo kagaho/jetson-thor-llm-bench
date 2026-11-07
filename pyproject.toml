@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jetson-thor-llm-bench"
+version = "0.2.0"
+description = "Reproducible local vLLM benchmarking on NVIDIA Jetson Thor"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+keywords = ["jetson", "thor", "vllm", "benchmark", "qwen"]
+classifiers = ["Programming Language :: Python :: 3", "Operating System :: POSIX :: Linux"]
+
+[tool.setuptools.packages.find]
+include = ["thorbench*"]
+
+[tool.setuptools.package-data]
+thorbench = ["data/*.json"]
+
+[project.scripts]
+thorbench = "thorbench.cli:main"

@@ -78,6 +78,9 @@ class EndToEndTests(unittest.TestCase):
                 self.assertEqual(row["reasoning_tokens"], 5)
                 self.assertTrue(row["ok"])
                 self.assertTrue((report / "summary.md").is_file())
+                self.assertTrue((report / "summary.json").is_file())
+                md = json.loads((report / "metadata.json").read_text())
+                self.assertEqual(md["model_provenance"]["checkpoint_repo"], "local-inference-lab/Qwen3.8-Flash-Next-NVFP4")
         finally:
             server.shutdown()
             server.server_close()

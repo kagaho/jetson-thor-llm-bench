@@ -2,7 +2,7 @@
 
 **A minimal, reproducible, public-ready benchmark harness for local LLM/VLM inference on NVIDIA Jetson AGX Thor.** Designed around an existing vLLM OpenAI-compatible server; no dependencies beyond Python's standard library.
 
-> **Status:** v0.1.0 · Prototype. The source is unit-tested offline; live benchmark results must be collected on your own Jetson. Not affiliated with NVIDIA, Qwen, or vLLM.
+> **Status:** v0.2.0 · Prototype (proposed release, tag after PR merge). The source is unit-tested offline; live benchmark results must be collected on your own Jetson. Not affiliated with NVIDIA, Qwen, or vLLM.
 
 ## Why this repository?
 
@@ -35,6 +35,18 @@ cat results/*-quick/summary.md
 ```
 
 This does **not** restart the currently working container and does **not** download weights.
+
+### Model provenance and public results
+
+```bash
+python3 -m thorbench doctor       # local model name, checkpoint, configured context
+python3 -m thorbench references   # external source catalog (offline)
+python3 -m thorbench compare --run results/<timestamp>-quick
+```
+
+The first supported model is **Qwen3.8 Flash Next**, served as `Qwen3.8-Flash-Next`, with checkpoint `local-inference-lab/Qwen3.8-Flash-Next-NVFP4`. Public references include the [official NVIDIA Thor recipe](https://www.jetson-ai-lab.com/models/qwen3-8-flash-next/), [Leibniz-HBI's vLLM Thor report](https://github.com/Leibniz-HBI/Qwen3.8-Flash-Next-Jetson-Thor-vLLM), and an [NVIDIA forum FP8-hybrid result](https://forums.developer.nvidia.com/t/qwen3-8-flash-next-at-46-7-tok-s-on-jetson-agx-thor/383269). **These are not matched head-to-head results.** See [public comparison methodology](docs/PUBLIC_BENCHMARKS.md).
+
+The model-specific deployment guide and launch script live under [`models/qwen3.8-flash-next/`](models/qwen3.8-flash-next/README.md). Future model integrations should follow the same directory convention.
 
 ### Reasoning-mode comparison
 
@@ -70,7 +82,7 @@ Each run creates a timestamped folder below `results/` with:
 
 - `metadata.json` — model name, advertised context, non-identifying Jetson software information.
 - `samples.jsonl` — request timing, token counts, pass/fail, and any errors. **No prompt or generated answer content.**
-- `summary.md` — scenario-level median latency, TTFT, TTFC, throughput and pass counts.
+- `summary.md` and `summary.json` — scenario-level median latency, TTFT, TTFC, throughput and pass counts.
 
 **Everything under `results/` is ignored by Git.** To publish an anonymized benchmark, inspect it and explicitly copy only the fields you want to share to a tracked document.
 
@@ -86,11 +98,17 @@ Optional `THOR_BENCH_API_KEY` is read from the environment, never stored in repo
 
 ## Reproducing the initial Thor container (optional)
 
-`scripts/serve_qwen.sh` records the baseline launch flags: `GPU_MEMORY_UTILIZATION=0.90`, `MAX_MODEL_LEN=212992`, `--max-num-seqs 1`, and **MTP disabled**. Do **not** run it while your working vLLM container is already active. It is a convenience recipe, not part of benchmark execution.
+`models/qwen3.8-flash-next/serve.sh` records the baseline launch flags: `GPU_MEMORY_UTILIZATION=0.90`, `MAX_MODEL_LEN=212992`, `--max-num-seqs 1`, and **MTP disabled**. Do **not** run it while your working vLLM container is already active. It is a convenience recipe, not part of benchmark execution.
 
-The baseline includes a known missing MTP safetensors file and a KV-cache limitation at 262K: see [Shockwave baseline](docs/SHOCKWAVE_BASELINE.md). Model weights and base images are not included or relicensed.
+The baseline includes a known missing MTP safetensors file and a KV-cache limitation at 262K: see [Shockwave baseline](models/qwen3.8-flash-next/baseline.md). Model weights and base images are not included or relicensed.
 
-## Make a public repository
+## GitHub: real PRs, version tags, issues and releases
+
+This is a standalone benchmark project, not a history import from a private Soundwave repo. Start with the existing v0.1.0 commit, publish the new repository, and submit v0.2.0 on a feature branch **through a pull request**. Use annotated tags `v0.1.0` and `v0.2.0` on merged `main` commits; review CI and issue templates first.
+
+See [step-by-step release and PR workflow](docs/RELEASING.md), [publication checklist](docs/PUBLICATION_CHECKLIST.md), and [historical 2025–2026 memory-cache issue draft](docs/issues/2025-2026-memory-cache-pressure.md).
+
+## Make a local repository (first-time setup only)
 
 ```bash
 cd ~/Documents/jetson-thor-llm-bench
@@ -106,7 +124,10 @@ Review `git status` and `git diff --cached` before publishing. **Do not publish 
 ## Documentation
 
 - [Methodology and caveats](docs/METHODOLOGY.md)
-- [Observed Shockwave baseline](docs/SHOCKWAVE_BASELINE.md)
+- [Qwen3.8 Flash Next model guide](models/qwen3.8-flash-next/README.md) and [observed Shockwave baseline](models/qwen3.8-flash-next/baseline.md)
+- [Public benchmark comparisons and standardized quality roadmap](docs/PUBLIC_BENCHMARKS.md)
+- [Releases, PRs and issue publication](docs/RELEASING.md)
+- [Changelog](CHANGELOG.md)
 - [Security and disclosure](SECURITY.md)
 - [Contribution guidelines](CONTRIBUTING.md)
 
