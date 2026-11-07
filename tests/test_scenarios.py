@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from thorbench.scenarios import NEEDLE, case_context, case_quick, case_reasoning, case_vision
+from thorbench.scenarios import NEEDLE, case_context, case_quick, case_reasoning, case_vision, case_agent
 
 
 class ScenarioTests(unittest.TestCase):
@@ -17,6 +17,14 @@ class ScenarioTests(unittest.TestCase):
         message = payload["messages"][0]["content"]
         self.assertIn(NEEDLE, message)
         self.assertGreater(len(message), 800)
+
+    def test_agent_shared_prefix_with_changing_tail(self):
+        first = case_agent(1024, "testnonce", "first")
+        followup = case_agent(1024, "testnonce", "followup")
+        self.assertEqual(first["messages"][0], followup["messages"][0])
+        self.assertNotEqual(first["messages"][1], followup["messages"][1])
+        with self.assertRaises(ValueError):
+            case_agent(1024, "testnonce", "invalid")
 
     def test_vision_image_is_encoded(self):
         with tempfile.TemporaryDirectory() as tmp:

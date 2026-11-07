@@ -30,3 +30,9 @@
 ## Memory safety
 
 Thor has unified RAM. Avoid jumping directly to ~200K context with a ~100 GiB resident model. Start small, review `jtop`/`tegrastats`, then escalate deliberately. Do not run other models in parallel when testing near memory limits.
+
+## Repeated prompts and cache evidence (v0.4.0 candidate)
+
+For first/repeat or synthetic agent-like probes, `--runs` counts **pairs** and `--warmup 0` is required. Each pair uses a fresh random marker, and requests run sequentially. The benchmark may scrape server-wide `vllm:prefix_cache_hits_total` and `vllm:prefix_cache_queries_total` around each request. If the server does not expose the counters, record the status as *unavailable*, not zero. Even with a positive delta, other traffic to the engine prevents per-request attribution. A latency improvement alone is not a confirmed prefix-cache hit.
+
+See [reproducibility protocol](AGENT_BENCHMARK_PROTOCOL.md) and the [November 7 Shockwave observations](benchmarks/2026-11-07-shockwave-prefix.md).

@@ -4,7 +4,16 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-### Added (v0.3.0 candidate)
+### Added (v0.4.0 candidate)
+- Repeated first/repeat prefix pairs (`--runs` counts pairs) and synthetic agent-like shared-context follow-ups with changing instructions.
+- Optional read-only Prometheus `/metrics` cache query/hit counter deltas, including explicit unavailable/zero/reset distinction and attribution caveats.
+- Paired comparisons in `summary.md`/`summary.json` with sample counts and clearly qualified TTFT ratios.
+- Reviewed numeric case study from two operator-provided Shockwave runs, reproducible SVG figure, table, and Mermaid evidence/agent workflows.
+- Protocol for cache evidence, isolation requirements, and separation of synthetic responsiveness from agent correctness.
+
+## [0.3.0] — 2026-11-07
+
+### Added
 - Full, explicit baseline Docker launch profile in JSON alongside the existing reproducible `serve.sh`.
 - Optional `doctor --container` / `bench --container` observation of whitelisted running vLLM flags, without storing raw Docker inspect output or credentials.
 - Paired synthetic `prefix` benchmark with cached prompt-token reporting when returned by the serving API.
@@ -12,7 +21,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Source-attributed comparison of Marco Pastorio's FP8-hybrid MTP performance and Ryan Johns's real agent workflow, explicitly not an apples-to-apples ranking.
 
 
-## [0.2.0] — 2026-11-07 (proposed; release after PR merge)
+## [0.2.0] — 2026-11-07
 
 ### Added
 - Per-model directories for the first Qwen3.8 Flash Next integration (guide, launch recipe, observed baseline).

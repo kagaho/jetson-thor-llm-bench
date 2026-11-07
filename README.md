@@ -2,7 +2,7 @@
 
 **A minimal, reproducible, public-ready benchmark harness for local LLM/VLM inference on NVIDIA Jetson AGX Thor.** Designed around an existing vLLM OpenAI-compatible server; no dependencies beyond Python's standard library.
 
-> **Status:** v0.3.0 candidate · Prototype (keep changes on a feature branch until CI/review and release tag). The source is unit-tested offline; live benchmark results must be collected on your own Jetson. Not affiliated with NVIDIA, Qwen, or vLLM.
+> **Status:** v0.4.0 candidate · Prototype (do not tag until PR review, CI, and Thor measurements). The source is unit-tested offline; live benchmark results must be collected on your own Jetson. Not affiliated with NVIDIA, Qwen, or vLLM.
 
 ## Why this repository?
 
@@ -16,7 +16,8 @@ Large, quantized MoE models now run on single 128 GB unified-memory devices, but
 | `reasoning` | Off / low / medium on the same prompt | Identical output quality across modes |
 | `context` | Needle-in-haystack correctness at increasing approximate lengths | Full native context validation |
 | `vision` | Local image request / response completeness | Visual accuracy or camera FPS |
-| `prefix` | First vs repeated long-prompt TTFT, cached-token reporting | A clean cold-cache comparison without verifying cache state |
+| `prefix` | Independent first/repeat pairs, optional `/metrics` cache counters, TTFT/TTFC | That faster repetition proves cache was used |
+| `agent` | Long shared repository context with changing user task, optional cache evidence | A full coding-agent correctness or tool-use benchmark |
 
 ## Prerequisites
 
@@ -62,15 +63,26 @@ python3 -m thorbench bench --suite quick --runs 3 --container qwen38-flash-next
 
 If a container cannot be inspected, omit `--container` for normal testing; never pretend the declared recipe is the observed live configuration. Unknown effective defaults are marked *not explicitly set*, not "off". Checkpoint revision, image digest, power and clocks still require independent confirmation. Read [optimization matrix](docs/OPTIMIZATION_MATRIX.md) and [feature workflow diagrams](docs/diagrams/README.md) before modifying flags.
 
-### Agent prefix-cache probe (no restart)
+### Observed prefix responsiveness on Shockwave (2026-11-07)
+
+![First/repeated prompt TTFT on Shockwave; cache hit mechanism not verified](docs/figures/shockwave-prefix-ttft-2026-11-07.svg)
+
+Two operator-supplied historical pairs, each with ~6,082 actual prompt tokens, show **8.63×** and **8.06×** faster TTFT on repetition. These are *observed short runs*, not a statistically established improvement or verified cache reuse: `cached_prompt_tokens` was **missing** for all four calls. See the [full numeric case study](docs/benchmarks/2026-11-07-shockwave-prefix.md), [evidence-gating workflow](docs/diagrams/08-prefix-cache-evidence.md), and [agent-style follow-up sequence](docs/diagrams/09-agent-prefix-sequence.md).
+
+### Repeated-pair and agent-like probes (no restart)
 
 ```bash
-python3 -m thorbench bench --suite prefix --runs 1 --warmup 0 \
+# Five independent repeat pairs; no warmup inside these paired workloads:
+python3 -m thorbench bench --suite prefix --runs 5 --warmup 0 \
   --prefix-tokens 8192 --container qwen38-flash-next
-# Compares first / repeated identical synthetic prompts; inspect cached_prompt_tokens and TTFT.
+# Different user request, stable long system/repository prefix:
+python3 -m thorbench bench --suite agent --runs 5 --warmup 0 \
+  --prefix-tokens 8192 --container qwen38-flash-next
 ```
 
-Or run the complete safe sequence: `bash scripts/benchmark_baseline.sh`. Prefix caching is not explicitly selected in our original launch script, and engine defaults vary. A faster repeat alone doesn't prove prefix caching. This is a smoke benchmark, not a matched reproduction of [Marco's 46.7 tok/s](https://forums.developer.nvidia.com/t/qwen3-8-flash-next-at-46-7-tok-s-on-jetson-agx-thor/383269) or [Ryan's coding-agent results](https://forums.developer.nvidia.com/t/qwen3-8-flash-next-at-46-7-tok-s-on-jetson-agx-thor/383269/6).
+The benchmark attempts read-only `/metrics` scrapes before/after each request and reports **server-wide prefix cache counter deltas** when available. `None` means unavailable, *not* zero hits. Other clients can contaminate attribution; see the [reproducible agent/prefix protocol](docs/AGENT_BENCHMARK_PROTOCOL.md). The `agent` suite is a synthetic responsiveness probe, not proof of correct code execution.
+
+Or run the original short smoke sequence: `bash scripts/benchmark_baseline.sh`. The current launch script does not explicitly select prefix caching, and engine defaults vary. Do not equate these results with [Marco's 46.7 tok/s](https://forums.developer.nvidia.com/t/qwen3-8-flash-next-at-46-7-tok-s-on-jetson-agx-thor/383269) or [Ryan's real coding-agent trials](https://forums.developer.nvidia.com/t/qwen3-8-flash-next-at-46-7-tok-s-on-jetson-agx-thor/383269/6).
 
 
 ### Reasoning-mode comparison
@@ -107,7 +119,8 @@ Each run creates a timestamped folder below `results/` with:
 
 - `metadata.json` — model name, advertised context, non-identifying Jetson software information and a checked-in launch-profile hash; **sanitized actual Docker flags** appear when `--container` is supplied.
 - `samples.jsonl` — request timing, token counts, pass/fail, and any errors. **No prompt or generated answer content.**
-- `summary.md` and `summary.json` — scenario-level median latency, TTFT, TTFC, throughput and pass counts.
+- `summary.md` and `summary.json` — scenario-level median latency, TTFT, TTFC, throughput and pass counts; for paired suites, an additional per-pair comparison and median ratio.
+- `cache_evidence` and cache-query/hit counter deltas in paired `samples.jsonl` when exposed by the server; **counters are server-wide**, not request-specific.
 
 **Everything under `results/` is ignored by Git.** To publish an anonymized benchmark, inspect it and explicitly copy only the fields you want to share to a tracked document.
 
@@ -151,6 +164,8 @@ Review `git diff`, CI and the anonymized metadata before opening a PR. Don't ove
 - [Qwen3.8 Flash Next model guide](models/qwen3.8-flash-next/README.md) and [observed Shockwave baseline](models/qwen3.8-flash-next/baseline.md)
 - [Public benchmark comparisons and standardized quality roadmap](docs/PUBLIC_BENCHMARKS.md)
 - [Releases, PRs and issue publication](docs/RELEASING.md)
+- [Published Shockwave prefix case study](docs/benchmarks/2026-11-07-shockwave-prefix.md) — measured data, illustrated, limitations
+- [Agent/prefix benchmark protocol](docs/AGENT_BENCHMARK_PROTOCOL.md) — repeatable experiments and cache evidence
 - [Changelog](CHANGELOG.md)
 - [Security and disclosure](SECURITY.md)
 - [Contribution guidelines](CONTRIBUTING.md)
