@@ -69,6 +69,12 @@ If a container cannot be inspected, omit `--container` for normal testing; never
 
 Two operator-supplied historical pairs, each with ~6,082 actual prompt tokens, show **8.63×** and **8.06×** faster TTFT on repetition. These are *observed short runs*, not a statistically established improvement or verified cache reuse: `cached_prompt_tokens` was **missing** for all four calls. See the [full numeric case study](docs/benchmarks/2026-11-07-shockwave-prefix.md), [evidence-gating workflow](docs/diagrams/08-prefix-cache-evidence.md), and [agent-style follow-up sequence](docs/diagrams/09-agent-prefix-sequence.md).
 
+### Five-pair live benchmark: prefix + changing agent tasks
+
+![First/follow-up TTFT and total latency, five request pairs per suite](docs/figures/shockwave-five-pair-ttft-latency-2026-11-07.svg)
+
+The next controlled run completed **20/20 requests**: identical-prefix first/repeat median paired TTFT ratio **8.23×**, and synthetic agent-style follow-up **7.18×** (five pairs each). All ten follow-ups showed **positive server-wide prefix-cache hit-counter deltas**, stronger evidence than latency alone but not definitive per-request attribution without an isolated endpoint. Decoding remained near **24–25 tokens/s**. Read the [five-pair benchmark and caveats](docs/benchmarks/2026-11-07-shockwave-five-pair-prefix-agent.md). These are *responsiveness*, not code-correctness, results.
+
 ### Repeated-pair and agent-like probes (no restart)
 
 ```bash
@@ -165,6 +171,7 @@ Review `git diff`, CI and the anonymized metadata before opening a PR. Don't ove
 - [Public benchmark comparisons and standardized quality roadmap](docs/PUBLIC_BENCHMARKS.md)
 - [Releases, PRs and issue publication](docs/RELEASING.md)
 - [Published Shockwave prefix case study](docs/benchmarks/2026-11-07-shockwave-prefix.md) — measured data, illustrated, limitations
+- [Five-pair prefix and agent benchmark](docs/benchmarks/2026-11-07-shockwave-five-pair-prefix-agent.md) — measured TTFT, total latency, cache-counter evidence, graph
 - [Agent/prefix benchmark protocol](docs/AGENT_BENCHMARK_PROTOCOL.md) — repeatable experiments and cache evidence
 - [Changelog](CHANGELOG.md)
 - [Security and disclosure](SECURITY.md)
