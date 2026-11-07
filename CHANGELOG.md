@@ -9,6 +9,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Optional read-only Prometheus `/metrics` cache query/hit counter deltas, including explicit unavailable/zero/reset distinction and attribution caveats.
 - Paired comparisons in `summary.md`/`summary.json` with sample counts and clearly qualified TTFT ratios.
 - Reviewed numeric case study from two operator-provided Shockwave runs, reproducible SVG figure, table, and Mermaid evidence/agent workflows.
+- Published five-pair Shockwave prefix and synthetic-agent results (20/20 successful requests), with a separate TTFT/total-latency figure and qualified server-wide cache-hit evidence.
 - Protocol for cache evidence, isolation requirements, and separation of synthetic responsiveness from agent correctness.
 
 ## [0.3.0] — 2026-11-07
