@@ -11,7 +11,7 @@ These diagrams render directly on GitHub. They describe **design and benchmark h
 | [05 Optimization rollout](05-optimization-rollout.md) | Controlled A/B with quality and stability gates | Planned |
 | [06 Tool calling and reasoning](06-tool-calling-and-reasoning.md) | API output vs agent correctness | Qwen3 parser + qwen3_xml |
 | [07 Hybrid weights and throughput](07-hybrid-weights-and-throughput.md) | Quantization/engine and concurrency differences | Baseline NVFP4, one slot |
-| [08 Prefix-cache evidence](08-prefix-cache-evidence.md) | Separate measured latency from actual KV hit counters | Historical hits unverified; new probes available |
+| [08 Prefix-cache evidence](08-prefix-cache-evidence.md) | Separate measured latency from actual KV hit counters | Five-pair tests report server-wide hits; per-request attribution conditional |
 | [09 Agent shared-context sequence](09-agent-prefix-sequence.md) | Stable repository context, changing tasks | Synthetic responsiveness, not full agent correctness |
 
 Each page also includes a state table, exact known flags, impact, safeguards, and measurement plan.
