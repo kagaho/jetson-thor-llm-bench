@@ -4,6 +4,14 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Added (v0.3.0 candidate)
+- Full, explicit baseline Docker launch profile in JSON alongside the existing reproducible `serve.sh`.
+- Optional `doctor --container` / `bench --container` observation of whitelisted running vLLM flags, without storing raw Docker inspect output or credentials.
+- Paired synthetic `prefix` benchmark with cached prompt-token reporting when returned by the serving API.
+- Feature matrix and six Mermaid diagrams explaining vLLM optimization modes, memory budgeting, tool calling and agentic deployment trade-offs.
+- Source-attributed comparison of Marco Pastorio's FP8-hybrid MTP performance and Ryan Johns's real agent workflow, explicitly not an apples-to-apples ranking.
+
+
 ## [0.2.0] — 2026-11-07 (proposed; release after PR merge)
 
 ### Added

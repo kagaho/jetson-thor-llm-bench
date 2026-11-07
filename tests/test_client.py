@@ -2,7 +2,7 @@ import io
 import json
 import unittest
 from unittest.mock import patch
-from thorbench.client import VLLMClient, _usage
+from thorbench.client import VLLMClient, _usage, _cached_usage
 
 
 class FakeResponse(io.BytesIO):
@@ -13,6 +13,10 @@ class ClientTests(unittest.TestCase):
     def test_usage(self):
         self.assertEqual(_usage({"usage": {"prompt_tokens": 8, "completion_tokens": 5, "completion_tokens_details": {"reasoning_tokens": 2}}}), (8, 5, 2))
         self.assertEqual(_usage({}), (None, None, None))
+
+    def test_cached_tokens_null_vs_reported(self):
+        self.assertIsNone(_cached_usage({"usage": {"prompt_tokens_details": None}}))
+        self.assertEqual(_cached_usage({"usage": {"prompt_tokens_details": {"cached_tokens": 128}}}), 128)
 
     def test_nonstream(self):
         payload = {"choices": [{"message": {"content": "READY"}, "finish_reason": "stop"}],

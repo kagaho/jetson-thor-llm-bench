@@ -2,7 +2,7 @@
 
 **A minimal, reproducible, public-ready benchmark harness for local LLM/VLM inference on NVIDIA Jetson AGX Thor.** Designed around an existing vLLM OpenAI-compatible server; no dependencies beyond Python's standard library.
 
-> **Status:** v0.2.0 · Prototype (proposed release, tag after PR merge). The source is unit-tested offline; live benchmark results must be collected on your own Jetson. Not affiliated with NVIDIA, Qwen, or vLLM.
+> **Status:** v0.3.0 candidate · Prototype (keep changes on a feature branch until CI/review and release tag). The source is unit-tested offline; live benchmark results must be collected on your own Jetson. Not affiliated with NVIDIA, Qwen, or vLLM.
 
 ## Why this repository?
 
@@ -16,6 +16,7 @@ Large, quantized MoE models now run on single 128 GB unified-memory devices, but
 | `reasoning` | Off / low / medium on the same prompt | Identical output quality across modes |
 | `context` | Needle-in-haystack correctness at increasing approximate lengths | Full native context validation |
 | `vision` | Local image request / response completeness | Visual accuracy or camera FPS |
+| `prefix` | First vs repeated long-prompt TTFT, cached-token reporting | A clean cold-cache comparison without verifying cache state |
 
 ## Prerequisites
 
@@ -47,6 +48,30 @@ python3 -m thorbench compare --run results/<timestamp>-quick
 The first supported model is **Qwen3.8 Flash Next**, served as `Qwen3.8-Flash-Next`, with checkpoint `local-inference-lab/Qwen3.8-Flash-Next-NVFP4`. Public references include the [official NVIDIA Thor recipe](https://www.jetson-ai-lab.com/models/qwen3-8-flash-next/), [Leibniz-HBI's vLLM Thor report](https://github.com/Leibniz-HBI/Qwen3.8-Flash-Next-Jetson-Thor-vLLM), and an [NVIDIA forum FP8-hybrid result](https://forums.developer.nvidia.com/t/qwen3-8-flash-next-at-46-7-tok-s-on-jetson-agx-thor/383269). **These are not matched head-to-head results.** See [public comparison methodology](docs/PUBLIC_BENCHMARKS.md).
 
 The model-specific deployment guide and launch script live under [`models/qwen3.8-flash-next/`](models/qwen3.8-flash-next/README.md). Future model integrations should follow the same directory convention.
+
+### Reproducing the **actual** launch configuration
+
+The validated baseline is checked in as [full `docker run` recipe](models/qwen3.8-flash-next/serve.sh) plus [machine-readable deployment profile](models/qwen3.8-flash-next/launch-profile.json) (image digest at pull, all Docker runtime/volume/environment options and all vLLM arguments). The script is **not automatically executed** by benchmarks. Actual running flags can differ from this declaration; capture them safely using Docker inspection:
+
+```bash
+python3 -m thorbench doctor --container qwen38-flash-next
+python3 -m thorbench bench --suite quick --runs 3 --container qwen38-flash-next
+# Structured metadata.json includes deployment.vllm_flags, prefix_caching_flag and declared_launch_profile.sha256.
+# Neither command restarts Docker nor copies prompts, raw env, bind mounts or credentials.
+```
+
+If a container cannot be inspected, omit `--container` for normal testing; never pretend the declared recipe is the observed live configuration. Unknown effective defaults are marked *not explicitly set*, not "off". Checkpoint revision, image digest, power and clocks still require independent confirmation. Read [optimization matrix](docs/OPTIMIZATION_MATRIX.md) and [feature workflow diagrams](docs/diagrams/README.md) before modifying flags.
+
+### Agent prefix-cache probe (no restart)
+
+```bash
+python3 -m thorbench bench --suite prefix --runs 1 --warmup 0 \
+  --prefix-tokens 8192 --container qwen38-flash-next
+# Compares first / repeated identical synthetic prompts; inspect cached_prompt_tokens and TTFT.
+```
+
+Or run the complete safe sequence: `bash scripts/benchmark_baseline.sh`. Prefix caching is not explicitly selected in our original launch script, and engine defaults vary. A faster repeat alone doesn't prove prefix caching. This is a smoke benchmark, not a matched reproduction of [Marco's 46.7 tok/s](https://forums.developer.nvidia.com/t/qwen3-8-flash-next-at-46-7-tok-s-on-jetson-agx-thor/383269) or [Ryan's coding-agent results](https://forums.developer.nvidia.com/t/qwen3-8-flash-next-at-46-7-tok-s-on-jetson-agx-thor/383269/6).
+
 
 ### Reasoning-mode comparison
 
@@ -80,7 +105,7 @@ Use your own test image. It is sent in memory as a data URI and is **not persist
 
 Each run creates a timestamped folder below `results/` with:
 
-- `metadata.json` — model name, advertised context, non-identifying Jetson software information.
+- `metadata.json` — model name, advertised context, non-identifying Jetson software information and a checked-in launch-profile hash; **sanitized actual Docker flags** appear when `--container` is supplied.
 - `samples.jsonl` — request timing, token counts, pass/fail, and any errors. **No prompt or generated answer content.**
 - `summary.md` and `summary.json` — scenario-level median latency, TTFT, TTFC, throughput and pass counts.
 
@@ -104,25 +129,24 @@ The baseline includes a known missing MTP safetensors file and a KV-cache limita
 
 ## GitHub: real PRs, version tags, issues and releases
 
-This is a standalone benchmark project, not a history import from a private Soundwave repo. Start with the existing v0.1.0 commit, publish the new repository, and submit v0.2.0 on a feature branch **through a pull request**. Use annotated tags `v0.1.0` and `v0.2.0` on merged `main` commits; review CI and issue templates first.
+This standalone repository maintains `main` through pull requests and release tags. Keep this v0.3.0 candidate in a feature branch until tests and review pass; release only from merged `main`. Historical releases remain unchanged.
 
 See [step-by-step release and PR workflow](docs/RELEASING.md), [publication checklist](docs/PUBLICATION_CHECKLIST.md), and [historical 2025–2026 memory-cache issue draft](docs/issues/2025-2026-memory-cache-pressure.md).
 
-## Make a local repository (first-time setup only)
+## Local development (existing repository)
 
 ```bash
 cd ~/Documents/jetson-thor-llm-bench
 python3 -m unittest discover -s tests -v
-git init -b main
-git add .
-git diff --cached --stat
-git commit -m "Initial public-ready Jetson Thor LLM benchmark harness"
+git status --short
+git diff --check
 ```
 
-Review `git status` and `git diff --cached` before publishing. **Do not publish an older private repository's full Git history** without reviewing it for credentials or machine details. Create a clean-history GitHub repository when ready.
+Review `git diff`, CI and the anonymized metadata before opening a PR. Don't overwrite tags or commit raw results.
 
 ## Documentation
 
+- [Optimization and feature status matrix](docs/OPTIMIZATION_MATRIX.md) and [Mermaid workflow diagrams](docs/diagrams/README.md)
 - [Methodology and caveats](docs/METHODOLOGY.md)
 - [Qwen3.8 Flash Next model guide](models/qwen3.8-flash-next/README.md) and [observed Shockwave baseline](models/qwen3.8-flash-next/baseline.md)
 - [Public benchmark comparisons and standardized quality roadmap](docs/PUBLIC_BENCHMARKS.md)

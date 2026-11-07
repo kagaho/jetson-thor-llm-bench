@@ -85,3 +85,20 @@ def case_vision(image_path: str) -> dict:
         "temperature": 0.0,
         "max_tokens": 512,
     }
+
+
+def case_prefix(approx_tokens: int, nonce: str) -> dict:
+    """Identical synthetic prompts for cold-ish and repeat prefix-cache probes."""
+    if not (1024 <= approx_tokens <= 32768):
+        raise ValueError("Prefix target must be 1024..32768 approximate tokens")
+    line = "Repository notes: module parsing, error handling, deterministic tests, and clean interfaces.\n"
+    shared = f"Benchmark marker {nonce}\n" + line * max(1, (approx_tokens * 4) // len(line))
+    return {
+        "messages": [
+            {"role": "system", "content": "Synthetic coding context; answer the user request concisely.\n" + shared},
+            {"role": "user", "content": "List two design principles for this repository in one sentence."},
+        ],
+        "temperature": 0.0,
+        "reasoning_effort": "low",
+        "max_tokens": 256,
+    }

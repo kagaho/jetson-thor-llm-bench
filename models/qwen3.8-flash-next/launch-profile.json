@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "profile": "shockwave-qwen38-nvfp4-v020",
+  "status": "observed_working_2026-11-07",
+  "device": "NVIDIA Jetson AGX Thor Developer Kit 128GB",
+  "jetpack": "7.2.1-b49",
+  "cuda_toolkit": "13.2",
+  "image": "ghcr.io/nvidia-ai-iot/vllm:qwen3.8-next-jetson-thor",
+  "image_digest_at_pull": "sha256:512bf772c7ef221df1a66ab9c95546d77daeba6ba61723692852e6eb0cae7526",
+  "checkpoint": "local-inference-lab/Qwen3.8-Flash-Next-NVFP4",
+  "served_model_name": "Qwen3.8-Flash-Next",
+  "docker_run": {
+    "interactive": true,
+    "tty": true,
+    "remove_when_stopped": true,
+    "container_name": "qwen38-flash-next",
+    "runtime": "nvidia",
+    "gpus": "all",
+    "network": "host",
+    "ipc": "host",
+    "environment": {"NVIDIA_VISIBLE_DEVICES": "all"},
+    "bind_mounts": [
+      "${HOME}/.cache/huggingface:/root/.cache/huggingface",
+      "${HOME}/.cache/vllm:/root/.cache/vllm"
+    ]
+  },
+  "vllm_arguments": [
+    "local-inference-lab/Qwen3.8-Flash-Next-NVFP4",
+    "--host", "127.0.0.1",
+    "--served-model-name", "Qwen3.8-Flash-Next",
+    "--gpu-memory-utilization", "0.90",
+    "--max-model-len", "212992",
+    "--max-num-seqs", "1",
+    "--mamba-ssm-cache-dtype", "bfloat16",
+    "--reasoning-parser", "qwen3",
+    "--enable-auto-tool-choice",
+    "--tool-call-parser", "qwen3_xml",
+    "--hf-overrides", "{\"architectures\":[\"Qwen4ExpForConditionalGeneration\"],\"model_type\":\"qwen4_exp\"}"
+  ],
+  "feature_state": {
+    "mtp": "off_explicit_no_speculative_config",
+    "prefix_caching": "not_explicitly_set_engine_default_must_be_measured",
+    "chunked_prefill": "not_explicitly_set_engine_default_unknown",
+    "kv_cache_memory_bytes": "not_set_auto_inferred",
+    "kv_cache_dtype": "not_explicitly_set",
+    "vision": "model_supported_but_not_benchmarked",
+    "thinking": "request_level_setting_low_in_first_coding_probe"
+  },
+  "notes": [
+    "Derived from the checked-in serve.sh and the successful November 7 API run; rerun with --container to fingerprint actual Docker flags.",
+    "Do not infer effective engine feature defaults from missing CLI flags.",
+    "Power mode, clocks and Hugging Face checkpoint commit were not captured at baseline."
+  ]
+}

@@ -71,3 +71,29 @@ gh release create v0.2.0 --title "v0.2.0 — Model provenance and public referen
 ```
 
 If `v0.1.0` was already tagged, don't recreate it; use `git tag -l`. Configure GitHub **Settings → Rules → Rulesets** for `main` after pushing. Make `unit-tests` a required status check once the first workflow has run and the check name is visible.
+
+
+## v0.3.0: agent-workload instrumentation / diagrams (proposal)
+
+**Do not move or recreate `v0.2.0`.** From a clean `main` that already contains PR #1:
+
+```bash
+git switch main
+git pull --ff-only origin main
+git switch -c feat/agent-benchmark-runtime-profiles
+# Copy the supplied v0.3.0 patch into ~/Downloads (relative to the repo as necessary).
+git apply --check ../../Downloads/jetson-thor-llm-bench-v0.3.0.patch
+git apply ../../Downloads/jetson-thor-llm-bench-v0.3.0.patch
+python3 -m unittest discover -s tests -v
+python3 -m thorbench references
+git add -A
+git diff --cached --check
+git diff --cached --stat
+git commit -m "feat: capture Thor serving flags and document agent optimizations"
+git push -u origin feat/agent-benchmark-runtime-profiles
+gh pr create --base main --head feat/agent-benchmark-runtime-profiles \
+  --title "feat: runtime launch fingerprints, prefix benchmark and feature diagrams" \
+  --body "Add sanitized Docker runtime capture, first/repeat prefix probes, exact baseline launch profile, public comparison and Mermaid workflows. No model restart or weight downloads."
+```
+
+Review PR CI and output redaction. After merging, update `main`, create annotated `v0.3.0` tag, and publish release notes through the normal workflow above. This branch does not turn on MTP or modify the known-good `serve.sh`.

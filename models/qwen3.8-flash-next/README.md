@@ -45,3 +45,12 @@ python3 -m thorbench references
 ```
 
 Results go to ignored `results/` directories and are **not public claims** until independently reviewed and published with their test methodology. See [baseline.md](baseline.md) for the initial manual results.
+
+## Reproducible launch fingerprint and feature decisions
+
+- [Verified baseline `docker run` with all active attributes](serve.sh) (**do not launch while a container is already serving**).
+- [Structured launch profile, including the observed image digest](launch-profile.json).
+- [Feature matrix, defaults, risks and community comparison](../../docs/OPTIMIZATION_MATRIX.md).
+- [Mermaid diagrams: cache, MTP, KV, agents, rollout and tool calls](../../docs/diagrams/README.md).
+
+Run `python3 -m thorbench doctor --container qwen38-flash-next` and add `--container qwen38-flash-next` to benchmarks to fingerprint the **running** Docker arguments. The profile describes a validated declaration; Docker inspection records the current command **without raw environment variables, mounts, secrets or host paths**. Both remain subject to engine defaults and power/clock variance.

@@ -12,8 +12,9 @@ from .client import APIError, VLLMClient
 from .report import new_run_dir, save_row, summarize
 from .reference import model_metadata, list_references, compare_local_run
 from . import __version__
-from .scenarios import NEEDLE, case_context, case_quick, case_reasoning, case_vision
+from .scenarios import NEEDLE, case_context, case_quick, case_reasoning, case_vision, case_prefix
 from .system import snapshot
+from .deployment import inspect_container, checked_in_profile_fingerprint
 
 
 def build_parser():
@@ -22,18 +23,21 @@ def build_parser():
     parser.add_argument("--model", default=os.getenv("THOR_BENCH_MODEL", "Qwen3.8-Flash-Next"))
     parser.add_argument("--timeout", type=int, default=600)
     sub = parser.add_subparsers(dest="command", required=True)
-    sub.add_parser("doctor", help="Check health, models, and configured context length")
+    doctor = sub.add_parser("doctor", help="Check health, models, configured context and optional Docker launch")
+    doctor.add_argument("--container", help="Inspect a running Docker container using a strict field allowlist")
     sub.add_parser("references", help="List verified model sources and reported public benchmarks (offline)")
     compare = sub.add_parser("compare", help="Compare a local result with public references; no cross-protocol ratios")
     compare.add_argument("--run", type=Path, required=True, help="Path to a results/<timestamp>-<suite> folder")
     bench = sub.add_parser("bench", help="Run sequential benchmarks and write results")
-    bench.add_argument("--suite", choices=["quick", "reasoning", "context", "vision"], default="quick")
+    bench.add_argument("--suite", choices=["quick", "reasoning", "context", "vision", "prefix"], default="quick")
     bench.add_argument("--runs", type=int, default=3)
     bench.add_argument("--warmup", type=int, default=1, help="Warmup calls per scenario, not recorded")
     bench.add_argument("--context-sizes", default="1024,4096,8192", help="Approximate context token sizes")
     bench.add_argument("--allow-large-context", action="store_true", help="Required above 32768 approximate tokens")
     bench.add_argument("--image", help="Local JPG/PNG/WEBP for vision suite; never copied to results")
     bench.add_argument("--results-dir", default="results")
+    bench.add_argument("--container", help="Record actual sanitized Docker serving flags in metadata.json")
+    bench.add_argument("--prefix-tokens", type=int, default=8192, help="Approximate shared prompt size for the prefix suite")
     return parser
 
 
@@ -49,17 +53,22 @@ def run(args) -> int:
         ok = client.health()
         models = client.models()
         selected = next((m for m in models if m.get("id") == args.model), None)
+        launch = inspect_container(args.container) if getattr(args, "container", None) else None
         print(json.dumps({
             "healthy": ok, "model_found": selected is not None,
             "model": args.model, "max_model_len": selected.get("max_model_len") if selected else None,
             "model_provenance": model_metadata(args.model),
             "bench_version": __version__,
             "platform": snapshot(),
+            "deployment": launch,
+            "declared_launch_profile": checked_in_profile_fingerprint(),
         }, indent=2))
         return 0 if ok and selected else 2
 
     if args.runs < 1 or args.runs > 25 or args.warmup < 0 or args.warmup > 10:
         raise ValueError("--runs must be 1..25; --warmup must be 0..10")
+    if args.suite == "prefix" and (args.runs != 1 or args.warmup != 0):
+        raise ValueError("Prefix suite requires --runs 1 --warmup 0 to preserve first/repeat order")
     if not client.health():
         raise APIError("Health endpoint returned a non-200 status")
     model_info = next((m for m in client.models() if m.get("id") == args.model), None)
@@ -81,6 +90,13 @@ def run(args) -> int:
         if isinstance(max_model_len, int) and max(sizes) >= max_model_len:
             raise ValueError("Context targets must remain below the advertised max_model_len")
         cases = [(f"context_{n}", case_context(n), False, True) for n in sizes]
+    elif args.suite == "prefix":
+        if not 1024 <= args.prefix_tokens <= 32768:
+            raise ValueError("--prefix-tokens must be between 1024 and 32768")
+        import uuid
+        # Random marker prevents accidental reuse across independent benchmark sessions.
+        payload = case_prefix(args.prefix_tokens, uuid.uuid4().hex)
+        cases = [("prefix_first", payload, True, False), ("prefix_repeat", payload, True, False)]
     else:
         if not args.image:
             raise ValueError("Vision suite requires --image /path/to/image.jpg")
@@ -95,9 +111,11 @@ def run(args) -> int:
         "bench_version": __version__,
         "max_model_len": max_model_len,
         "platform": snapshot(),
+        "deployment": inspect_container(args.container) if getattr(args, "container", None) else None,
+        "declared_launch_profile": checked_in_profile_fingerprint(),
         "runs_per_scenario": args.runs,
         "warmup_per_scenario": args.warmup,
-        "model_configuration_note": "Record Docker image digest, gpu-memory-utilization, power mode and clocks manually for comparisons.",
+        "model_configuration_note": "--container records allowlisted running flags. Verify digest, power mode, clocks, model revision, resolved defaults manually.",
     }
     (dest / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
     rows = []

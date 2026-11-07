@@ -27,6 +27,7 @@ class Sample:
     finish_reason: str | None
     content: str
     streamed: bool
+    cached_prompt_tokens: int | None = None
 
     def metrics(self) -> dict[str, Any]:
         completion = self.completion_tokens
@@ -39,6 +40,7 @@ class Sample:
             "prompt_tokens": self.prompt_tokens,
             "completion_tokens": completion,
             "reasoning_tokens": reasoning,
+            "cached_prompt_tokens": self.cached_prompt_tokens,
             "visible_tokens": completion - reasoning if completion is not None and reasoning is not None else None,
             "effective_tokens_s": round(completion / self.elapsed_s, 3) if completion is not None and self.elapsed_s > 0 else None,
             "decode_tokens_s": round((completion - 1) / decode_s, 3)
@@ -46,6 +48,10 @@ class Sample:
             "finish_reason": self.finish_reason,
             "streamed": self.streamed,
         }
+
+
+def _cached_usage(payload: dict[str, Any]) -> int | None:
+    return ((payload.get("usage") or {}).get("prompt_tokens_details") or {}).get("cached_tokens")
 
 
 def _usage(payload: dict[str, Any]) -> tuple[int | None, int | None, int | None]:
@@ -104,7 +110,7 @@ class VLLMClient:
             raise APIError("Chat response contained no choices")
         first = choices[0]
         p, c, r = _usage(data)
-        return Sample(elapsed, None, None, p, c, r, first.get("finish_reason"), first.get("message", {}).get("content") or "", False)
+        return Sample(elapsed, None, None, p, c, r, first.get("finish_reason"), first.get("message", {}).get("content") or "", False, _cached_usage(data))
 
     def _stream(self, request: dict[str, Any]) -> Sample:
         start = time.monotonic()
@@ -112,7 +118,7 @@ class VLLMClient:
         first_content_at = None
         content_parts = []
         finish_reason = None
-        p = c = r = None
+        p = c = r = cached = None
         with self._request("/v1/chat/completions", request) as response:
             # Each SSE data event may be split across multiple data: lines.
             data_lines: list[str] = []
@@ -137,6 +143,7 @@ class VLLMClient:
                     raise APIError("Streaming API returned an error")
                 if chunk.get("usage"):
                     p, c, r = _usage(chunk)
+                    cached = _cached_usage(chunk)
                 for choice in chunk.get("choices") or []:
                     delta = choice.get("delta") or {}
                     reasoning = delta.get("reasoning") or delta.get("reasoning_content") or ""
@@ -161,4 +168,5 @@ class VLLMClient:
             finish_reason=finish_reason,
             content="".join(content_parts),
             streamed=True,
+            cached_prompt_tokens=cached,
         )
