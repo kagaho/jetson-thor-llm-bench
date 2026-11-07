@@ -1,0 +1,25 @@
+name: Benchmark result proposal
+description: Contribute a measured and reproducible result
+labels: ["benchmark"]
+body:
+  - type: textarea
+    id: hardware
+    attributes:
+      label: Hardware and software
+      description: Board, JetPack/CUDA, model revision, quantization, container digest, power mode and clocks
+    validations:
+      required: true
+  - type: textarea
+    id: protocol
+    attributes:
+      label: Benchmark protocol
+      description: Exact suite and flags, context, prompt set, concurrency, warmup, samples and cache state
+    validations:
+      required: true
+  - type: textarea
+    id: results
+    attributes:
+      label: Anonymized results
+      description: Medians/percentiles, failures and original source link. Do not include private prompts or identifiers.
+    validations:
+      required: true
