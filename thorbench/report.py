@@ -53,6 +53,7 @@ def summarize(rows: list[dict[str, Any]], destination: Path):
             "median_ttfc_s": median_value("ttfc_s", good),
             "median_effective_tokens_s": median_value("effective_tokens_s", good),
             "median_decode_tokens_s": median_value("decode_tokens_s", good),
+            "median_cached_prompt_tokens": median_value("cached_prompt_tokens", good),
         }
         lines.append(
             f"| `{scenario}` | {len(good)}/{len(items)} | "
@@ -63,7 +64,8 @@ def summarize(rows: list[dict[str, Any]], destination: Path):
         "- `ok` requires successful HTTP completion and `finish_reason=stop`. Context probes also require the target code.",
         "- Successful API output is not a verified quality evaluation of generated code or visual understanding.",
         "- Compare test runs only when model, quantization, clocks, power profile, concurrency, and prompts are comparable.",
-        "- Streaming token counts depend on the server returning usage in SSE. `n/a` means unreported, not zero.", ""]
+        "- Streaming token counts depend on the server returning usage in SSE. `n/a` means unreported, not zero.",
+        "- Prefix suite reuses identical prompts within one run; prefix hits and cold-start state must be verified, not assumed.", ""]
     (destination / "summary.md").write_text("\n".join(lines), encoding="utf-8")
 
     (destination / "summary.json").write_text(json.dumps(structured, indent=2) + "\n", encoding="utf-8")

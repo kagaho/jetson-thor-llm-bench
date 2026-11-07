@@ -55,6 +55,29 @@ class Handler(BaseHTTPRequestHandler):
 
 
 class EndToEndTests(unittest.TestCase):
+    def test_prefix_suite_captures_two_requests(self):
+        server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                args = SimpleNamespace(
+                    base_url=f"http://127.0.0.1:{server.server_port}", model="Qwen3.8-Flash-Next",
+                    timeout=5, command="bench", suite="prefix", runs=1, warmup=0,
+                    prefix_tokens=1024, results_dir=str(Path(tmp) / "results"), container=None,
+                )
+                with redirect_stdout(io.StringIO()):
+                    self.assertEqual(run(args), 0)
+                folder = next((Path(tmp) / "results").glob("*-prefix"))
+                samples = [json.loads(line) for line in (folder / "samples.jsonl").read_text().splitlines()]
+                self.assertEqual([s["scenario"] for s in samples], ["prefix_first", "prefix_repeat"])
+                self.assertTrue(all(s["ok"] for s in samples))
+                self.assertTrue(all("cached_prompt_tokens" in s for s in samples))
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=3)
+
     def test_doctor_and_quick_suite(self):
         server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
         thread = threading.Thread(target=server.serve_forever, daemon=True)

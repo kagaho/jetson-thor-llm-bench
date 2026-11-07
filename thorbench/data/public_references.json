@@ -28,7 +28,7 @@
       "runtime": "patched vLLM with PLE mmap, Marlin fallback and MTP=1",
       "workload": "single-stream local prompt, non-eager, MTP=1",
       "reported_metric": "decode throughput, approximate range",
-      "reported_value": "23\u201324",
+      "reported_value": "23–24",
       "unit": "tokens/s",
       "notes": "Prompt/clock-dependent engineering report; NOT the same checkpoint, flags or fixed prompt as Shockwave."
     },
@@ -46,6 +46,21 @@
       "reported_value": 46.7,
       "unit": "tokens/s",
       "notes": "Different checkpoint and benchmark workload from Shockwave; includes prefill and TTFT. Not directly comparable."
+    },
+    {
+      "id": "nvidia-forum-smithy-2026-09-30",
+      "title": "NVIDIA forum: real coding-agent Thor / Smithy field report",
+      "url": "https://forums.developer.nvidia.com/t/qwen3-8-flash-next-at-46-7-tok-s-on-jetson-agx-thor/383269/6",
+      "publication_date": "2026-09-30",
+      "kind": "community_agent_field_report",
+      "hardware": "Jetson AGX Thor 128GB",
+      "checkpoint": "RadixArk NVFP4 with custom FP8-hybrid follow-up",
+      "runtime": "custom NemoClaw-Thor vLLM, prefix caching, MTP=3, fixed KV 8GiB",
+      "workload": "repeated 16K agent prompt with shared prefix (cold vs warm TTFT); not a decode throughput test",
+      "reported_metric": "TTFT cold -> warm (16K shared prefix)",
+      "reported_value": "9.05 -> 1.0",
+      "unit": "seconds",
+      "notes": "Reported by Ryan Johns; approximately 90% tokens cached on repeat; unlike a throughput test, this assesses repeated-prefix latency. Their agent runner includes separate compiler/test gates, not guaranteed production service."
     }
   ]
 }
