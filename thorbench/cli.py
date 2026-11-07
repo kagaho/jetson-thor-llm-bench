@@ -12,9 +12,10 @@ from .client import APIError, VLLMClient
 from .report import new_run_dir, save_row, summarize
 from .reference import model_metadata, list_references, compare_local_run
 from . import __version__
-from .scenarios import NEEDLE, case_context, case_quick, case_reasoning, case_vision, case_prefix
+from .scenarios import NEEDLE, case_context, case_quick, case_reasoning, case_vision, case_prefix, case_agent
 from .system import snapshot
 from .deployment import inspect_container, checked_in_profile_fingerprint
+from .cache_metrics import counter_deltas
 
 
 def build_parser():
@@ -29,7 +30,7 @@ def build_parser():
     compare = sub.add_parser("compare", help="Compare a local result with public references; no cross-protocol ratios")
     compare.add_argument("--run", type=Path, required=True, help="Path to a results/<timestamp>-<suite> folder")
     bench = sub.add_parser("bench", help="Run sequential benchmarks and write results")
-    bench.add_argument("--suite", choices=["quick", "reasoning", "context", "vision", "prefix"], default="quick")
+    bench.add_argument("--suite", choices=["quick", "reasoning", "context", "vision", "prefix", "agent"], default="quick")
     bench.add_argument("--runs", type=int, default=3)
     bench.add_argument("--warmup", type=int, default=1, help="Warmup calls per scenario, not recorded")
     bench.add_argument("--context-sizes", default="1024,4096,8192", help="Approximate context token sizes")
@@ -37,7 +38,8 @@ def build_parser():
     bench.add_argument("--image", help="Local JPG/PNG/WEBP for vision suite; never copied to results")
     bench.add_argument("--results-dir", default="results")
     bench.add_argument("--container", help="Record actual sanitized Docker serving flags in metadata.json")
-    bench.add_argument("--prefix-tokens", type=int, default=8192, help="Approximate shared prompt size for the prefix suite")
+    bench.add_argument("--prefix-tokens", type=int, default=8192, help="Approximate shared context size for prefix/agent suites")
+    bench.add_argument("--no-cache-metrics", action="store_true", help="Skip optional /metrics counter snapshots")
     return parser
 
 
@@ -67,8 +69,8 @@ def run(args) -> int:
 
     if args.runs < 1 or args.runs > 25 or args.warmup < 0 or args.warmup > 10:
         raise ValueError("--runs must be 1..25; --warmup must be 0..10")
-    if args.suite == "prefix" and (args.runs != 1 or args.warmup != 0):
-        raise ValueError("Prefix suite requires --runs 1 --warmup 0 to preserve first/repeat order")
+    if args.suite in ("prefix", "agent") and args.warmup != 0:
+        raise ValueError("Prefix and agent suites require --warmup 0; --runs counts independent first/repeat pairs")
     if not client.health():
         raise APIError("Health endpoint returned a non-200 status")
     model_info = next((m for m in client.models() if m.get("id") == args.model), None)
@@ -76,11 +78,11 @@ def run(args) -> int:
         raise APIError(f"Model {args.model!r} is not registered on the server")
     max_model_len = model_info.get("max_model_len")
 
-    cases: list[tuple[str, dict, bool, bool]] = []
+    cases: list[tuple[str, dict, bool, bool, int | None]] = []
     if args.suite == "quick":
-        cases = [("quick", case_quick(), True, False)]
+        cases = [("quick", case_quick(), True, False, None)]
     elif args.suite == "reasoning":
-        cases = [(f"reasoning_{mode}", case_reasoning(mode), True, False) for mode in ("off", "low", "medium")]
+        cases = [(f"reasoning_{mode}", case_reasoning(mode), True, False, None) for mode in ("off", "low", "medium")]
     elif args.suite == "context":
         sizes = [int(s.strip()) for s in args.context_sizes.split(",") if s.strip()]
         if not sizes or any(n < 256 or n > 200000 for n in sizes):
@@ -89,18 +91,29 @@ def run(args) -> int:
             raise ValueError("Context tests above 32768 tokens require --allow-large-context")
         if isinstance(max_model_len, int) and max(sizes) >= max_model_len:
             raise ValueError("Context targets must remain below the advertised max_model_len")
-        cases = [(f"context_{n}", case_context(n), False, True) for n in sizes]
-    elif args.suite == "prefix":
+        cases = [(f"context_{n}", case_context(n), False, True, None) for n in sizes]
+    elif args.suite in ("prefix", "agent"):
         if not 1024 <= args.prefix_tokens <= 32768:
             raise ValueError("--prefix-tokens must be between 1024 and 32768")
         import uuid
-        # Random marker prevents accidental reuse across independent benchmark sessions.
-        payload = case_prefix(args.prefix_tokens, uuid.uuid4().hex)
-        cases = [("prefix_first", payload, True, False), ("prefix_repeat", payload, True, False)]
+        for pair in range(1, args.runs + 1):
+            # Unique marker per pair; within a pair the full prefix is shared.
+            nonce = uuid.uuid4().hex
+            if args.suite == "prefix":
+                payload = case_prefix(args.prefix_tokens, nonce)
+                cases.extend([
+                    ("prefix_first", payload, True, False, pair),
+                    ("prefix_repeat", payload, True, False, pair),
+                ])
+            else:
+                cases.extend([
+                    ("agent_first", case_agent(args.prefix_tokens, nonce, "first"), True, False, pair),
+                    ("agent_followup", case_agent(args.prefix_tokens, nonce, "followup"), True, False, pair),
+                ])
     else:
         if not args.image:
             raise ValueError("Vision suite requires --image /path/to/image.jpg")
-        cases = [("vision", case_vision(args.image), False, False)]
+        cases = [("vision", case_vision(args.image), False, False, None)]
 
     dest = new_run_dir(Path(args.results_dir), args.suite)
     metadata = {
@@ -113,17 +126,24 @@ def run(args) -> int:
         "platform": snapshot(),
         "deployment": inspect_container(args.container) if getattr(args, "container", None) else None,
         "declared_launch_profile": checked_in_profile_fingerprint(),
-        "runs_per_scenario": args.runs,
+        "runs_per_scenario": 1 if args.suite in ("prefix", "agent") else args.runs,
+        "pair_count": args.runs if args.suite in ("prefix", "agent") else None,
+        "prefix_evidence_note": "Prometheus /metrics counters are server-wide and require an isolated serving endpoint for attribution; None means unavailable, not zero.",
         "warmup_per_scenario": args.warmup,
         "model_configuration_note": "--container records allowlisted running flags. Verify digest, power mode, clocks, model revision, resolved defaults manually.",
     }
     (dest / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
     rows = []
     print(f"Writing private-by-default results to {dest}")
-    for scenario, payload, streaming, is_context in cases:
-        print(f"\nScenario: {scenario} | stream={streaming} | runs={args.runs}", flush=True)
-        for attempt in range(-args.warmup, args.runs):
+    for scenario, payload, streaming, is_context, pair_id in cases:
+        count = 1 if pair_id is not None else args.runs
+        print(f"\nScenario: {scenario} | stream={streaming} | runs={count}" +
+              (f" | pair={pair_id}" if pair_id is not None else ""), flush=True)
+        attempts = [0] if pair_id is not None else range(-args.warmup, args.runs)
+        for attempt in attempts:
             warmup = attempt < 0
+            measure_cache = pair_id is not None and not getattr(args, "no_cache_metrics", False)
+            before = client.prefix_cache_counters() if measure_cache else None
             try:
                 sample = client.chat(payload, streaming=streaming)
                 metrics = sample.metrics()
@@ -132,16 +152,25 @@ def run(args) -> int:
                     valid = valid and NEEDLE in sample.content.strip()
                 elif scenario == "vision":
                     valid = valid and bool(sample.content.strip())
+                after = client.prefix_cache_counters() if measure_cache else None
                 row = {
                     "scenario": scenario, "run": attempt + 1, "ok": valid,
                     "error": None, **metrics,
                 }
+                if pair_id is not None:
+                    row["pair_id"] = pair_id
+                    row.update(counter_deltas(before, after))
+                    if row["cache_evidence"] == "unavailable" and (row.get("cached_prompt_tokens") or 0) > 0:
+                        row["cache_evidence"] = "response_cached_tokens_reported"
                 if not valid:
                     row["error"] = "incomplete response or scenario validation failed"
             except (APIError, ValueError, TimeoutError, OSError) as exc:
                 row = {"scenario": scenario, "run": attempt + 1, "ok": False,
                        "error": str(exc)[:200]}
-            label = "warmup" if warmup else f"run {attempt + 1}"
+                if pair_id is not None:
+                    row["pair_id"] = pair_id
+                    row.update(counter_deltas(None, None))
+            label = "warmup" if warmup else f"pair {pair_id}" if pair_id is not None else f"run {attempt + 1}"
             print(f"  {label}: {'PASS' if row['ok'] else 'FAIL'} | "
                   f"latency={row.get('elapsed_s', 'n/a')}s | "
                   f"TTFT={row.get('ttft_s', 'n/a')}s | "

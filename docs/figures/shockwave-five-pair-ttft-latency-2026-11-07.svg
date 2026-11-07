@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc" viewBox="0 0 970 540">
+<title id="title">Shockwave five-pair inference latency comparison</title>
+<desc id="desc">Median time to first token and end-to-end latency in seconds for first versus follow-up requests, five pairs each. Prefix first TTFT 4.20s repeat 0.51s; agent first TTFT 4.52s follow-up 0.63s. Prefix total 6.98s versus 3.36s; agent total 10.36s versus 7.41s.</desc>
+<rect x="0" y="0" width="970" height="540" rx="16" fill="#111D2C"/>
+<text x="28" y="45" fill="#FFFFFF" font-size="28" font-family="Arial, sans-serif" font-weight="bold">Shockwave · Five-pair responsiveness</text>
+<text x="28" y="77" fill="#ADBFD1" font-size="17" font-family="Arial, sans-serif">Jetson AGX Thor · Qwen3.8 Flash Next NVFP4 · lower latency is better</text>
+<rect x="28" y="97" width="16" height="16" rx="3" fill="#5F91F3"/>
+<text x="52" y="111" fill="#D9E6F8" font-size="16" font-family="Arial, sans-serif">First request</text>
+<rect x="224" y="97" width="16" height="16" rx="3" fill="#31C7B7"/>
+<text x="248" y="111" fill="#D9E6F8" font-size="16" font-family="Arial, sans-serif">Repeat / follow-up</text>
+<text x="28" y="169" fill="#EAF1FA" font-size="18" font-family="Arial, sans-serif">Identical prefix · TTFT</text>
+<rect x="260" y="136" width="540" height="17" rx="4" fill="#26394F"/>
+<rect x="260" y="164" width="540" height="17" rx="4" fill="#26394F"/>
+<rect x="260" y="136" width="206.2" height="17" rx="4" fill="#5F91F3"/>
+<rect x="260" y="164" width="25.0" height="17" rx="4" fill="#31C7B7"/>
+<text x="816" y="150" fill="#DCEAFF" font-size="17" font-family="Arial, sans-serif">4.20s</text>
+<text x="816" y="179" fill="#A9EEE6" font-size="17" font-family="Arial, sans-serif">0.51s</text>
+<text x="28" y="254" fill="#EAF1FA" font-size="18" font-family="Arial, sans-serif">Agent-style · TTFT</text>
+<rect x="260" y="221" width="540" height="17" rx="4" fill="#26394F"/>
+<rect x="260" y="249" width="540" height="17" rx="4" fill="#26394F"/>
+<rect x="260" y="221" width="221.9" height="17" rx="4" fill="#5F91F3"/>
+<rect x="260" y="249" width="30.9" height="17" rx="4" fill="#31C7B7"/>
+<text x="816" y="235" fill="#DCEAFF" font-size="17" font-family="Arial, sans-serif">4.52s</text>
+<text x="816" y="264" fill="#A9EEE6" font-size="17" font-family="Arial, sans-serif">0.63s</text>
+<line x1="28" y1="289" x2="910" y2="289" stroke="#354B63" stroke-width="1"/>
+<text x="28" y="354" fill="#EAF1FA" font-size="18" font-family="Arial, sans-serif">Identical prefix · Total</text>
+<rect x="260" y="321" width="540" height="17" rx="4" fill="#26394F"/>
+<rect x="260" y="349" width="540" height="17" rx="4" fill="#26394F"/>
+<rect x="260" y="321" width="342.7" height="17" rx="4" fill="#5F91F3"/>
+<rect x="260" y="349" width="164.9" height="17" rx="4" fill="#31C7B7"/>
+<text x="816" y="335" fill="#DCEAFF" font-size="17" font-family="Arial, sans-serif">6.98s</text>
+<text x="816" y="364" fill="#A9EEE6" font-size="17" font-family="Arial, sans-serif">3.36s</text>
+<text x="28" y="439" fill="#EAF1FA" font-size="18" font-family="Arial, sans-serif">Agent-style · Total</text>
+<rect x="260" y="406" width="540" height="17" rx="4" fill="#26394F"/>
+<rect x="260" y="434" width="540" height="17" rx="4" fill="#26394F"/>
+<rect x="260" y="406" width="508.6" height="17" rx="4" fill="#5F91F3"/>
+<rect x="260" y="434" width="363.8" height="17" rx="4" fill="#31C7B7"/>
+<text x="816" y="420" fill="#DCEAFF" font-size="17" font-family="Arial, sans-serif">10.36s</text>
+<text x="816" y="449" fill="#A9EEE6" font-size="17" font-family="Arial, sans-serif">7.41s</text>
+<text x="28" y="510" fill="#9DB1C8" font-size="15" font-family="Arial, sans-serif">5/5 follow-ups per suite showed server-wide cache hits; attribution requires an isolated endpoint.</text>
+</svg>

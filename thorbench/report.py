@@ -66,6 +66,44 @@ def summarize(rows: list[dict[str, Any]], destination: Path):
         "- Compare test runs only when model, quantization, clocks, power profile, concurrency, and prompts are comparable.",
         "- Streaming token counts depend on the server returning usage in SSE. `n/a` means unreported, not zero.",
         "- Prefix suite reuses identical prompts within one run; prefix hits and cold-start state must be verified, not assumed.", ""]
-    (destination / "summary.md").write_text("\n".join(lines), encoding="utf-8")
-
+    # Pair rows share a unique number within this run. Do not compare different
+    # runs as cold-cache reproductions without controlling server/cache state.
+    pair_rows: dict[int, dict[str, dict[str, Any]]] = {}
+    for row in rows:
+        if type(row.get("pair_id")) is int:
+            role = row["scenario"].split("_", 1)[-1]
+            pair_rows.setdefault(row["pair_id"], {})[role] = row
+    if pair_rows:
+        pair_values = []
+        lines.extend(["", "## Paired first/follow-up observations", "",
+                      "**Server cache hits are not established from TTFT alone.** Optional `/metrics` "
+                      "counters aggregate all server traffic; use an isolated endpoint for attribution.", "",
+                      "| Pair | First TTFT | Repeat/follow-up TTFT | Ratio | Follow-up cache evidence |",
+                      "|---:|---:|---:|---:|---|"])
+        for pair in sorted(pair_rows):
+            pair_obj = pair_rows[pair]
+            first = pair_obj.get("first")
+            second = pair_obj.get("repeat") or pair_obj.get("followup")
+            if not first or not second or not (first.get("ok") and second.get("ok")):
+                continue
+            ft, st = first.get("ttft_s"), second.get("ttft_s")
+            ratio = round(ft / st, 4) if isinstance(ft, (int, float)) and isinstance(st, (int, float)) and st > 0 else None
+            pair_values.append({"pair_id": pair, "first_ttft_s": ft, "followup_ttft_s": st,
+                                "ttft_ratio": ratio, "followup_cache_evidence": second.get("cache_evidence", "unavailable"),
+                                "followup_hit_tokens_delta": second.get("cache_hit_tokens_delta"),
+                                "followup_query_tokens_delta": second.get("cache_query_tokens_delta")})
+            lines.append(f"| {pair} | {ft:.3f}s | {st:.3f}s | {ratio:.2f}× | "
+                         f"{second.get('cache_evidence', 'unavailable')} |" if ratio is not None else
+                         f"| {pair} | n/a | n/a | n/a | {second.get('cache_evidence', 'unavailable')} |")
+        ttft_ratios = [p["ttft_ratio"] for p in pair_values if p["ttft_ratio"] is not None]
+        structured["paired_comparison"] = {
+            "valid_pairs": len(pair_values),
+            "median_ttft_ratio": round(statistics.median(ttft_ratios), 4) if ttft_ratios else None,
+            "pairs": pair_values,
+            "limitations": "descriptive only; TTFT reduction does not prove KV-cache hits; counters are server-wide",
+        }
+        if ttft_ratios:
+            lines.extend(["", f"Median per-pair TTFT ratio across {len(ttft_ratios)} pairs: "
+                          f"**{statistics.median(ttft_ratios):.2f}×** (descriptive, not proof of caching)."] )
+    (destination / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     (destination / "summary.json").write_text(json.dumps(structured, indent=2) + "\n", encoding="utf-8")

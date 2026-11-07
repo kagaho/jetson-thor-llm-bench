@@ -20,6 +20,17 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/health":
             self.send_response(200)
             self.end_headers()
+        elif self.path == "/metrics":
+            requests = getattr(self.server, "inference_count", 0)
+            raw = (
+                f'vllm:prefix_cache_queries_total{{model_name="Qwen3.8-Flash-Next"}} {requests * 100}\n'
+                f'vllm:prefix_cache_hits_total{{model_name="Qwen3.8-Flash-Next"}} {(requests // 2) * 80}\n'
+            ).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/plain")
+            self.send_header("Content-Length", str(len(raw)))
+            self.end_headers()
+            self.wfile.write(raw)
         elif self.path == "/v1/models":
             response = {"data": [{"id": "Qwen3.8-Flash-Next", "max_model_len": 212992}]}
             raw = json.dumps(response).encode()
@@ -40,6 +51,7 @@ class Handler(BaseHTTPRequestHandler):
         if not req.get("stream"):
             self.send_error(400)
             return
+        self.server.inference_count = getattr(self.server, "inference_count", 0) + 1
         chunks = [
             {"choices": [{"delta": {"reasoning": "thinking"}}]},
             {"choices": [{"delta": {"content": "Here is a function."}}]},
@@ -73,6 +85,55 @@ class EndToEndTests(unittest.TestCase):
                 self.assertEqual([s["scenario"] for s in samples], ["prefix_first", "prefix_repeat"])
                 self.assertTrue(all(s["ok"] for s in samples))
                 self.assertTrue(all("cached_prompt_tokens" in s for s in samples))
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=3)
+
+    def test_multiple_prefix_pairs_and_server_cache_counters(self):
+        server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                args = SimpleNamespace(
+                    base_url=f"http://127.0.0.1:{server.server_port}", model="Qwen3.8-Flash-Next",
+                    timeout=5, command="bench", suite="prefix", runs=3, warmup=0,
+                    prefix_tokens=1024, results_dir=str(Path(tmp) / "results"), container=None,
+                )
+                with redirect_stdout(io.StringIO()):
+                    self.assertEqual(run(args), 0)
+                folder = next((Path(tmp) / "results").glob("*-prefix"))
+                rows = [json.loads(l) for l in (folder / "samples.jsonl").read_text().splitlines()]
+                self.assertEqual(len(rows), 6)
+                self.assertEqual([r["pair_id"] for r in rows], [1, 1, 2, 2, 3, 3])
+                self.assertEqual([r["cache_evidence"] for r in rows[1::2]], ["server_hits_observed"] * 3)
+                summary = json.loads((folder / "summary.json").read_text())
+                self.assertEqual(summary["paired_comparison"]["valid_pairs"], 3)
+                self.assertIn("server-wide", summary["paired_comparison"]["limitations"])
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=3)
+
+    def test_agent_pair_synthetic_changing_task(self):
+        server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                args = SimpleNamespace(
+                    base_url=f"http://127.0.0.1:{server.server_port}", model="Qwen3.8-Flash-Next",
+                    timeout=5, command="bench", suite="agent", runs=2, warmup=0,
+                    prefix_tokens=1024, results_dir=str(Path(tmp) / "results"), container=None,
+                )
+                with redirect_stdout(io.StringIO()):
+                    self.assertEqual(run(args), 0)
+                folder = next((Path(tmp) / "results").glob("*-agent"))
+                rows = [json.loads(l) for l in (folder / "samples.jsonl").read_text().splitlines()]
+                self.assertEqual([r["scenario"] for r in rows],
+                                 ["agent_first", "agent_followup", "agent_first", "agent_followup"])
+                self.assertEqual(json.loads((folder / "summary.json").read_text())["paired_comparison"]["valid_pairs"], 2)
         finally:
             server.shutdown()
             server.server_close()

@@ -9,6 +9,8 @@ from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+from .cache_metrics import parse_prefix_counters
+
 
 class APIError(Exception):
     """An API connection, protocol, or server error."""
@@ -92,6 +94,21 @@ class VLLMClient:
     def models(self) -> list[dict[str, Any]]:
         with self._request("/v1/models") as response:
             return json.load(response).get("data", [])
+
+    def prefix_cache_counters(self) -> dict[str, float] | None:
+        """Scrape optional /metrics counters, returning None if inaccessible.
+
+        The scrape does not affect the request timer. Counters are server-wide;
+        interpret attribution only when other requests are absent.
+        """
+        try:
+            with self._request("/metrics") as response:
+                raw = response.read(2 * 1024 * 1024 + 1)
+            if len(raw) > 2 * 1024 * 1024:
+                return None  # Excessively large metrics response: fail closed.
+            return parse_prefix_counters(raw.decode("utf-8", errors="replace"))
+        except (APIError, TimeoutError, OSError):
+            return None
 
     def chat(self, payload: dict[str, Any], streaming: bool = True) -> Sample:
         req = {"model": self.model, **payload, "stream": streaming}

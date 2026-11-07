@@ -102,3 +102,30 @@ def case_prefix(approx_tokens: int, nonce: str) -> dict:
         "reasoning_effort": "low",
         "max_tokens": 256,
     }
+
+
+def case_agent(approx_tokens: int, nonce: str, turn: str) -> dict:
+    """Agent-like follow-up: stable repository instructions, changing task tail.
+
+    This is a synthetic *shared-prefix* test, not an end-to-end agent or tool
+    execution benchmark. Same fixed system context is reused for both turns.
+    """
+    if turn not in ("first", "followup"):
+        raise ValueError("agent turn must be first or followup")
+    if not 1024 <= approx_tokens <= 32768:
+        raise ValueError("Agent prefix target must be 1024..32768 approximate tokens")
+    line = "Repository spec: parser, typed results, safe errors, deterministic unit tests, and reviews.\n"
+    shared = f"Synthetic repository snapshot {nonce}\n" + line * max(1, (approx_tokens * 4) // len(line))
+    task = (
+        "Summarize two design constraints in one sentence." if turn == "first" else
+        "Suggest two tests for those design constraints in one sentence."
+    )
+    return {
+        "messages": [
+            {"role": "system", "content": "You are a coding assistant. Use the shared repository notes.\n" + shared},
+            {"role": "user", "content": task},
+        ],
+        "temperature": 0.0,
+        "reasoning_effort": "low",
+        "max_tokens": 256,
+    }

@@ -97,3 +97,7 @@ gh pr create --base main --head feat/agent-benchmark-runtime-profiles \
 ```
 
 Review PR CI and output redaction. After merging, update `main`, create annotated `v0.3.0` tag, and publish release notes through the normal workflow above. This branch does not turn on MTP or modify the known-good `serve.sh`.
+
+## v0.4.0 release candidate (after v0.3.0)
+
+Create `feat/prefix-evidence-agent-pairs` from the updated `main` branch, apply and review the patch, run the expanded offline suite, and run a short real Thor probe. Open a PR; only after review and CI should `main` be tagged `v0.4.0`. Do not commit raw `results/` files or claim cache hits where only TTFT changes were observed.
