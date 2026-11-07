@@ -1,0 +1,23 @@
+# Local results may contain timing, system information or test outputs.
+/results/*
+!/results/.gitkeep
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.coverage
+.env
+.env.*
+*.pem
+*.key
+*.token
+*.log
+# Never include model weights or caches.
+*.safetensors
+*.gguf
+*.bin
+.cache/
