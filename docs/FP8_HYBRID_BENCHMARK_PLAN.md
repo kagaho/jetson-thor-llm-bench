@@ -42,6 +42,22 @@ An exit code of zero after termination and the final verification message establ
 
 ## Execution order and integrity gates
 
+The [paired-run helper](../scripts/run_deployment_benchmarks.py) runs all nine existing suites without changing their scoring. It requires a fresh output directory below ignored `results/`, checks API health first and records commands, checkpoint revision, image ID, source hashes and vision-image hash. Optional `tegrastats` telemetry is stopped with the run. It preserves reports from failed requests and refuses to overwrite an existing run.
+
+The frozen common protocol uses three measured repetitions and one warmup per scenario for quick, reasoning, context and vision; context targets are 8,192 and 32,768 approximate tokens. Prefix and agent responsiveness each use five first/follow-up pairs with an 8,192 approximate-token prefix and no warmup. Tool routing and fixed multi-turn tasks use five repetitions; seeded generalization uses five variants per family and seed `3628200930879258838`. Request limits remain those shown below. Vision uses `docs/figures/benchmark-proposal.png` as a shared API smoke fixture, without an accuracy score. Prefix-pair markers remain random by design, so these prompts are not byte-identical across deployments.
+
+For example, once the pinned B2 server is healthy:
+
+```bash
+python3 scripts/run_deployment_benchmarks.py \
+  --base-url http://127.0.0.1:8000 --model Qwen3.8-Flash-Next \
+  --container qwen38-flash-next \
+  --checkpoint-revision 6c01ac378d22f6652c9f392c87700496eca8e5dc \
+  --results-dir results/deployment-comparison/b2
+```
+
+Repeat against the verified hybrid endpoint/model/container with a new output directory and its pinned base/delta revisions. `--dry-run` prints the commands without invoking Docker or the API. The separate forum `sgbench` C1 run uses upstream script revision `584c3e6e6476cb81e913d5b059f12a0b2c4c794d` (SHA256 `5328e80dd3f8a7115b8732ce313a93faf3078438949085e3b086a83c183d9eaa`), changing only the endpoint port in local copies. It makes two passes with category-specific output caps and the server's default thinking behavior; these results must remain separate from the repository suites.
+
 ```mermaid
 flowchart TD
     A[Pin sources, checkpoints and protocol] --> B[Download base and verify delta]
