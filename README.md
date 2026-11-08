@@ -137,6 +137,8 @@ cat "$(ls -td results/*-agent-generalization | head -1)/summary.md"
 
 Run against the **existing** vLLM server without Docker changes. The default seed is randomly selected and recorded locally; results are gitignored. The generated fixtures are variants of *public templates*, not a statistically representative sample of unseen SWE tasks. Scores for v0.6.0's fixed tasks and v0.7.0's generated variants must be reported separately. See the [generalization protocol](docs/AGENT_GENERALIZATION_EVAL.md) and [seeded task diagram](docs/diagrams/13-generalization-seeded-fixtures.md).
 
+A developer run using scorer **0.7.2** completed **25/30** episodes: all five repository task families passed 5/5, while all five no-tool answers failed the brevity gate. This is a recorded historical score, separate from the current scorer revision. See the [versioned measurements and limitations](docs/benchmarks/2026-11-08-generalization-followup.md#fresh-versioned-live-run-scorer-072-2530).
+
 ### Reasoning-mode comparison
 
 ```bash

@@ -66,3 +66,48 @@ At commit `de44842a07867d0f2a4dacf7dd67eea9e7df0857`, the targeted generalizatio
 The validated `thorbench/generalize_eval.py` source fingerprint is `9d76d9625578f95e6cf2b412e24109f092cbf97b897cd19f949969d78decf825` (SHA-256).
 
 Further investigation should use versioned reports for additional independent seeds and scrutinize numeric/final-answer heuristic coincidences. Any prompt change to address verbosity must receive a new protocol version and be measured separately. The oracle, expected values, simulator allowlist, original measurements and 700-character control remain intact. No model-selected shell commands or real tests were executed, and the serving container was not restarted.
+
+## Numeric follow-up: scorer 0.7.3, offline validation
+
+Independent offline characterization then demonstrated numeric false positives in all three numeric-answer families: the old matcher accepted negative and fractional values containing the expected digits, as well as an expected number mentioned only as an unrelated identifier. This was a scorer limitation demonstrated by synthetic controls, not evidence that any particular recorded model answer contained such an error.
+
+Commit `b2cb18c4089ef0fd043fcee8da1828b4e3d59919` corrects numeric token matching with exact `Decimal` comparisons and records scorer **0.7.3**, protocol **1**. The regression was demonstrated before implementation. There are **162 numeric controls** (three seeds × three families × eight positive and ten negative forms), including signs, fractional and grouped values, equivalent decimal/scientific notation, identifier boundaries, sentence punctuation, extreme exponents and a fractional difference too small for a binary float to preserve. All required repository observations remain present in these numeric controls, so an unrelated missing-evidence failure cannot mask the numeric test.
+
+The targeted suite passes **30 tests** and the full offline suite passes **97 tests** on Python 3.12.3. Compileall, references and diff checks pass, and [GitHub CI on the numeric fix](https://github.com/kagaho/jetson-thor-llm-bench/actions/runs/42453465685) succeeded. The evaluator source fingerprint is `26cd39a350a737f37c9b049c89cc3c664572e5290fd207bfc6ef78633a78ba72`.
+
+The unrelated-number case remains an explicit semantic-grounding limitation: token equality alone cannot determine which fact a number describes. It is not claimed fixed. Earlier model responses are not retained and cannot be regraded under the new parser. No full live-suite score is claimed for scorer 0.7.3.
+
+GitHub release and remote-tag inspection confirmed that **v0.6.0 is the latest published package release** at the time of this investigation; there are no v0.7 tags. Scorer revisions 0.7.1, 0.7.2 and 0.7.3 identify development grading behavior, not package releases. The package declarations remain v0.7.0 in development. README and the release workflow now state this distinction; release tags must follow reviewed merges to `main`.
+
+## Fresh versioned live run: scorer 0.7.2, 25/30
+
+A fresh 30-episode run started at `de44842a07867d0f2a4dacf7dd67eea9e7df0857` using the healthy existing server:
+
+```bash
+python3 -m thorbench.generalize_eval --runs 5
+```
+
+The generated base seed was **3628200930879258838**. The local report is `results/20261108T055906Z-agent-generalization/`; its metadata records scorer **0.7.2**, protocol **1**, the original `9d76d962…decf825` source fingerprint, model `Qwen3.8-Flash-Next`, `max_turns=10` and `max_tokens=1024`. Every sample records scorer 0.7.2. The numeric correction was developed in a separate process while the benchmark continued using its already-loaded original module; the recorded score remains a 0.7.2 measurement.
+
+| Family | Passed / total | Median turns | Median tools | Median prompt tokens | Median completion tokens | Median latency (s) | p90 latency (s) |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| `symbol_origin` | 5/5 | 3 | 4 | 2,511 | 349 | 17.6038 | 19.6796 |
+| `repair_regression` | 5/5 | 7 | 9 | 8,251 | 937 | 45.4402 | 48.8525 |
+| `moved_runbook` | 5/5 | 3 | 6 | 2,768 | 573 | 27.3530 | 34.9893 |
+| `transient_read` | 5/5 | 3 | 2 | 2,298 | 236 | 12.0280 | 15.0025 |
+| `environment_disambiguation` | 5/5 | 3 | 4 | 2,504 | 404 | 20.2361 | 22.7918 |
+| `no_tool_needed` | 0/5 | 1 | 0 | 699 | 304 | 13.6914 | 14.2744 |
+
+Total: **25/30 (83.3%)**, median episode latency **18.8132s**, interpolated p90 **41.3457s**. All five failures are `excessive_verbosity` on the no-tool control, with zero tool calls. There were no request errors, missing-discovery failures, or missing-authoritative-read failures. The CLI exited **1** because the five instruction failures remain in the denominator. All six families contributed five samples; no episode was removed.
+
+Across all episodes: **103 model turns**, **136 simulated tool calls**, **7 simulated tool errors**, **98,399 summed prompt tokens** and **14,327 completion tokens**. Summed prompt usage includes repeated conversation history, not unique context tokens.
+
+To regenerate these fixtures with the same scorer, run from a checkout of `de44842`:
+
+```bash
+python3 -m thorbench.generalize_eval --runs 5 --seed 3628200930879258838
+```
+
+Model outputs and timing may differ on replay. The current branch uses scorer 0.7.3 and would produce a separately attributed run. This run and the earlier 24/30 used different seeds and scorer revisions, so their score difference does not establish a model improvement or isolate the effect of a scorer change. These remain heuristic outcomes on six public synthetic task families, with the numeric and semantic limitations described above; they cannot be regraded from the privacy-minimized artifacts.
+
+The serving container was not restarted. Power, clocks, cache state, other clients and thermal conditions were not controlled or recaptured. Offline development checks ran during the live run; timing is observational and does not support a controlled performance comparison. Only sanitized metrics are copied here; raw prompts, answers, arguments and the operator log remain uncommitted.
