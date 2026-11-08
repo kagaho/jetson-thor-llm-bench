@@ -4,12 +4,20 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-### Validated A/B2 follow-up (v0.5.0 candidate)
+### Added (v0.6.0 candidate)
+- Multi-turn coding-agent evaluator using an isolated, deterministic in-memory repository with four simulated tools and five task-level outcomes.
+- Explicit missing-document and transient-error recovery, synthetic test-fix-retest scoring, and no-tool negative control.
+- Private numeric per-task metrics (latency, turns, simulated calls, error/recovery counts, summed prompt/completion tokens) and guarded result limits.
+- Offline scripted API protocol, state-machine and path-safety tests. No real source edits, shell execution, model restarts or external model dependencies.
+
+## [0.5.0] — 2026-11-08
+
+### Added
+- Read-only first-decision tool routing plus validated experimental B2 KV-memory profile and documented A/B case study.
 - Recorded baseline A versus explicit-4-GiB B2 memory allocation, startup gate and prompt/context tradeoffs; two safe sequential launch profiles.
 - Added per-case median prompt/output token metrics to first-tool-decision benchmark summaries.
 - Added B2 A/B report and reproducible SVG graph documenting 30/30 results on both configurations; no causal speedup claimed.
 
-### Added (v0.5.0 candidate)
 - Read-only first-decision coding-agent tool-routing benchmark with exact structured function/argument scoring, offline tests, and no tool execution.
 - Memory/KV-cache A/B restart runbook with baseline capture, physical memory constraints, and rollback gates; Mermaid decision workflows.
 
