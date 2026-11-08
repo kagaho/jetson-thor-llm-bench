@@ -105,7 +105,7 @@ python3 -m thorbench bench --suite agent --runs 5 --warmup 0 \
 
 The benchmark attempts read-only `/metrics` scrapes before/after each request and reports **server-wide prefix cache counter deltas** when available. `None` means unavailable, *not* zero hits. Other clients can contaminate attribution; see the [reproducible agent/prefix protocol](docs/AGENT_BENCHMARK_PROTOCOL.md). The `agent` suite is a synthetic responsiveness probe, not proof of correct code execution.
 
-Or run the original short smoke sequence: `bash scripts/benchmark_baseline.sh`. The current launch script does not explicitly select prefix caching, and engine defaults vary. Do not equate these results with [Marco's 46.7 tok/s](https://forums.developer.nvidia.com/t/qwen3-8-flash-next-at-46-7-tok-s-on-jetson-agx-thor/383269) or [Ryan's real coding-agent trials](https://forums.developer.nvidia.com/t/qwen3-8-flash-next-at-46-7-tok-s-on-jetson-agx-thor/383269/6).
+Or run the original short smoke sequence: `bash scripts/benchmark_baseline.sh`. The current launch script does not explicitly select prefix caching, and engine defaults vary. Do not equate these results with the [external 46.7 tok/s FP8-hybrid report](https://forums.developer.nvidia.com/t/qwen3-8-flash-next-at-46-7-tok-s-on-jetson-agx-thor/383269) or the [external coding-agent field report](https://forums.developer.nvidia.com/t/qwen3-8-flash-next-at-46-7-tok-s-on-jetson-agx-thor/383269/6).
 
 
 ### First-decision coding-agent tool routing (no Docker restart)
@@ -182,6 +182,14 @@ python3 -m thorbench bench --suite vision --image ~/Pictures/test.jpg --runs 1 -
 ```
 
 Use your own test image. It is sent in memory as a data URI and is **not persisted** in the benchmark results. The test checks API response success, not whether the description is accurate.
+
+## Summary and next benchmark
+
+The initial Qwen3.8 Flash Next NVFP4 evaluation demonstrates working local serving, structured tool routing and completion of defined simulated workflows on Jetson AGX Thor. First-decision routing passed **30/30** on each recorded A/B2 profile, and the fixed multi-turn suite passed **25/25**, repeating five public fixtures. The later seeded run completed **25/30 (83.3%)** under scorer **0.7.2**; all five failures were no-tool answers exceeding the brevity limit. These are separate protocols, documented in the [visual guide](docs/BENCHMARK_VISUAL_GUIDE.md) and [versioned measurements](docs/benchmarks/2026-11-08-generalization-followup.md).
+
+This is enough to move to another model using the same harness. The evidence supports the tested sequential workloads and their specific success criteria; it does not establish held-out coding correctness, a model ranking, full configured-context reliability or sustained-load stability. B2 remains the preferred profile for the current workload, with its [documented limits](docs/SERVING_PROFILES.md).
+
+**Next model: selection pending.** Before publishing a cross-model comparison, establish a reference run with current scorer **0.7.3**, then apply the same scorer, task seeds, prompts, request budgets and measurement definitions to the selected model. Record checkpoint revision, quantization, runtime image and serving conditions, and include failures. The historical 25/30 remains a scorer 0.7.2 result; a new comparison must not relabel it.
 
 ## Outputs
 
