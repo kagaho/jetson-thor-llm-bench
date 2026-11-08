@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "profile": "shockwave-qwen38-nvfp4-b2-lowmem-20261108",
+  "status": "observed_successful_one_start_and_benchmarks_not_long_term_proven",
+  "device": "NVIDIA Jetson AGX Thor Developer Kit 128GB",
+  "image_digest": "sha256:512bf772c7ef221df1a66ab9c95546d77daeba6ba61723692852e6eb0cae7526",
+  "checkpoint": "local-inference-lab/Qwen3.8-Flash-Next-NVFP4",
+  "vllm_version": "0.28.1rc1.dev580+g385dce36b",
+  "nvpmodel": "120W",
+  "served_model_name": "Qwen3.8-Flash-Next",
+  "launch_script": "models/qwen3.8-flash-next/serve-lowmem.sh",
+  "parameters": {
+    "gpu_memory_utilization": 0.88,
+    "kv_cache_memory_bytes": 4294967296,
+    "max_model_len": 131072,
+    "max_num_seqs": 1,
+    "mamba_ssm_cache_dtype": "bfloat16",
+    "reasoning_parser": "qwen3",
+    "tool_call_parser": "qwen3_xml",
+    "enable_auto_tool_choice": true,
+    "mtp": false
+  },
+  "observations": {
+    "kv_memory_gib": 4.0,
+    "kv_token_capacity": 159862,
+    "reported_max_concurrency": 1.22,
+    "memavailable_gib_at_startup": 3.4,
+    "memavailable_gib_after_benchmarks": 2.9,
+    "tool_routing_passes": 30,
+    "tool_routing_total": 30,
+    "tool_routing_median_elapsed_s": 3.1947
+  },
+  "limitations": [
+    "System memory observations are snapshots, not GPU allocator attribution",
+    "Prompt length maxima were not tested to configured limit",
+    "Startup memory gate still checks gpu_memory_utilization on the observed build",
+    "Do not run A and B2 concurrently; no sustained-stability validation yet"
+  ]
+}

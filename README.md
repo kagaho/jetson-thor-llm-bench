@@ -2,7 +2,7 @@
 
 **A minimal, reproducible, public-ready benchmark harness for local LLM/VLM inference on NVIDIA Jetson AGX Thor.** Designed around an existing vLLM OpenAI-compatible server; no dependencies beyond Python's standard library.
 
-> **Status:** v0.4.0 candidate · Prototype (do not tag until PR review, CI, and Thor measurements). The source is unit-tested offline; live benchmark results must be collected on your own Jetson. Not affiliated with NVIDIA, Qwen, or vLLM.
+> **Status:** v0.5.0 candidate · B2 has completed its initial functional and memory gates; longer-term stability and matched performance controls remain open. Not affiliated with NVIDIA, Qwen, or vLLM.
 
 ## Why this repository?
 
@@ -18,6 +18,7 @@ Large, quantized MoE models now run on single 128 GB unified-memory devices, but
 | `vision` | Local image request / response completeness | Visual accuracy or camera FPS |
 | `prefix` | Independent first/repeat pairs, optional `/metrics` cache counters, TTFT/TTFC | That faster repetition proves cache was used |
 | `agent` | Long shared repository context with changing user task, optional cache evidence | A full coding-agent correctness or tool-use benchmark |
+| `tool-routing` | Real structured function selection and argument accuracy against six synthetic fixtures | Actual code execution or multi-step agent task completion |
 
 ## Prerequisites
 
@@ -91,6 +92,23 @@ The benchmark attempts read-only `/metrics` scrapes before/after each request an
 Or run the original short smoke sequence: `bash scripts/benchmark_baseline.sh`. The current launch script does not explicitly select prefix caching, and engine defaults vary. Do not equate these results with [Marco's 46.7 tok/s](https://forums.developer.nvidia.com/t/qwen3-8-flash-next-at-46-7-tok-s-on-jetson-agx-thor/383269) or [Ryan's real coding-agent trials](https://forums.developer.nvidia.com/t/qwen3-8-flash-next-at-46-7-tok-s-on-jetson-agx-thor/383269/6).
 
 
+### First-decision coding-agent tool routing (no Docker restart)
+
+```bash
+python3 -m thorbench.tool_eval --runs 2
+cat "$(ls -td results/*-tool-routing | head -1)/summary.md"
+```
+
+This uses **real model function-calling responses**, but never executes model-selected tools or shell commands. It scores six deterministic cases (including a no-tool negative control) and records timing without publishing prompts or generated arguments. See [tool-routing protocol](docs/AGENT_TOOL_EVAL.md), [decision workflow](docs/diagrams/10-agent-tool-evaluation.md), and the [memory/KV-cache A/B restart plan](docs/MEMORY_AB_EXPERIMENT.md). **The B2 experiment has now completed startup and initial benchmark gates; keep the running container active during follow-up validation.**
+
+### Experimental B2 low-memory profile (2026-11-08)
+
+![Available RAM and tool-routing latency, baseline A versus B2](docs/figures/shockwave-a-b2-memory-and-tool-latency.svg)
+
+B2 started successfully using **4 GiB explicit KV cache**, **0.88 startup utilization threshold**, and **131,072 max context**, with **30/30** first-decision tool-routing passes and successful 8K/32K targeted retrieval. Available RAM was **2.9 GiB** after tests versus a **1.1 GiB** baseline snapshot, but conditions were not matched. Some B2 tool cases generated *more tokens*, explaining much of the observed total-latency difference. **B2 trades away configured context capacity** and is not established as generally superior.
+
+Use the [A/B benchmark case study](docs/benchmarks/2026-11-08-shockwave-b2-vs-a.md), [generated-output versus input-length analysis](docs/benchmarks/2026-11-08-shockwave-b2-output-length-context.md), and [memory runbook](docs/MEMORY_AB_EXPERIMENT.md). Launch scripts are [baseline A](models/qwen3.8-flash-next/serve.sh) and [pinned B2 experimental profile](models/qwen3.8-flash-next/serve-lowmem.sh). **Do not run either script while a serving container is already active.**
+
 ### Reasoning-mode comparison
 
 ```bash
@@ -148,7 +166,7 @@ The baseline includes a known missing MTP safetensors file and a KV-cache limita
 
 ## GitHub: real PRs, version tags, issues and releases
 
-This standalone repository maintains `main` through pull requests and release tags. Keep this v0.3.0 candidate in a feature branch until tests and review pass; release only from merged `main`. Historical releases remain unchanged.
+This standalone repository maintains `main` through pull requests and release tags. Keep this v0.5.0 candidate in a feature branch until tests and review pass; release only from merged `main`. Historical releases remain unchanged.
 
 See [step-by-step release and PR workflow](docs/RELEASING.md), [publication checklist](docs/PUBLICATION_CHECKLIST.md), and [historical 2025–2026 memory-cache issue draft](docs/issues/2025-2026-memory-cache-pressure.md).
 
@@ -173,6 +191,9 @@ Review `git diff`, CI and the anonymized metadata before opening a PR. Don't ove
 - [Published Shockwave prefix case study](docs/benchmarks/2026-11-07-shockwave-prefix.md) — measured data, illustrated, limitations
 - [Five-pair prefix and agent benchmark](docs/benchmarks/2026-11-07-shockwave-five-pair-prefix-agent.md) — measured TTFT, total latency, cache-counter evidence, graph
 - [Agent/prefix benchmark protocol](docs/AGENT_BENCHMARK_PROTOCOL.md) — repeatable experiments and cache evidence
+- [Tool-routing evaluation protocol](docs/AGENT_TOOL_EVAL.md) — first real tool decision, no execution
+- [Memory/KV-cache A/B evaluation](docs/MEMORY_AB_EXPERIMENT.md) — verified start, tradeoffs, rollback
+- [A versus B2 measurements](docs/benchmarks/2026-11-08-shockwave-b2-vs-a.md) — measured memory, latency and context capacity
 - [Changelog](CHANGELOG.md)
 - [Security and disclosure](SECURITY.md)
 - [Contribution guidelines](CONTRIBUTING.md)

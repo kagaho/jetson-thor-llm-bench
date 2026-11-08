@@ -13,5 +13,7 @@ These diagrams render directly on GitHub. They describe **design and benchmark h
 | [07 Hybrid weights and throughput](07-hybrid-weights-and-throughput.md) | Quantization/engine and concurrency differences | Baseline NVFP4, one slot |
 | [08 Prefix-cache evidence](08-prefix-cache-evidence.md) | Separate measured latency from actual KV hit counters | Five-pair tests report server-wide hits; per-request attribution conditional |
 | [09 Agent shared-context sequence](09-agent-prefix-sequence.md) | Stable repository context, changing tasks | Synthetic responsiveness, not full agent correctness |
+| [10 Tool-routing evaluation](10-agent-tool-evaluation.md) | Real structured tool decision, zero execution | 30/30 tested on A and B2 |
+| [11 Memory/KV A/B restart](11-memory-budget-restart.md) | Preserve baseline and rollback before changing cache budget | A→B failure→B2 startup and initial tests recorded |
 
 Each page also includes a state table, exact known flags, impact, safeguards, and measurement plan.
