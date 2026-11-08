@@ -4,7 +4,9 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-### Added (v0.7.0 candidate)
+## [0.7.0] — 2026-11-08
+
+### Added
 - Seed-varying, in-memory agent benchmark with six task families, generated repository paths, identifiers, values, decoys, and retryable failures.
 - Reproducible fixture seeds, strict allowlisted simulated tools, evidence-ordered completion scoring, and private summary reports including token usage and p90 task latency.
 - Offline safety, state, scoring and API-protocol tests; seeded variants are not independently withheld real-world coding tasks.
@@ -13,7 +15,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Fixed
 - Generalization scorer v0.7.2 rejects symbol-origin traces where an unrelated search precedes the active-file read but actual active-path discovery occurs only afterward; positive and negative seeded controls preserve valid discovery/read traces.
 - Generalization scorer 0.7.3 compares complete numeric tokens with exact decimal arithmetic, rejecting wrong signed/fractional/grouped values that previously matched expected integer digits while accepting equivalent numeric notation. Seeded positive and negative controls cover all three affected task families.
-- Clarify that scorer revision numbers are separate from package versions, GitHub tags and published releases; the v0.7 package remains under development.
+- Clarify that scorer revision numbers are separate from package versions, GitHub tags and published releases; package v0.7.0 includes scorer 0.7.3 and protocol 1.
 - Document the existing 24/30 seed-varying run separately from the original 4/6 and corrected 5/6 results; no historical outcomes are rescored.
 
 ## [0.6.0] — 2026-11-08
