@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
 from datetime import datetime, timezone
 import hashlib
 import json
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import time
@@ -14,6 +16,22 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 SEED = 3628200930879258838
 IMAGE = ROOT / "docs/figures/benchmark-proposal.png"
+
+
+@contextmanager
+def telemetry(destination: Path):
+    """Stop only our own read-only sampler when the run exits."""
+    if not shutil.which("tegrastats"):
+        yield
+        return
+    with (destination / "tegrastats.log").open("w") as output:
+        process = subprocess.Popen(["tegrastats", "--interval", "1000"],
+                                   stdout=output, stderr=subprocess.STDOUT)
+        try:
+            yield
+        finally:
+            process.terminate()
+            process.wait(timeout=10)
 
 
 def jobs(base_url: str, model: str, container: str, destination: Path):
@@ -87,28 +105,29 @@ def main():
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
 
     save()
-    for name, command in plan:
-        print(f"Starting {name}", flush=True)
-        began = time.monotonic()
-        record = {"suite": name, "command": command, "status": "running"}
-        manifest["jobs"].append(record)
-        save()
-        try:
-            with (destination / (name + ".log")).open("w") as output:
-                result = subprocess.run(command, cwd=ROOT, stdout=output, stderr=subprocess.STDOUT)
-        except BaseException:
-            record["status"] = "interrupted"
-            manifest["status"] = "interrupted"
+    with telemetry(destination):
+        for name, command in plan:
+            print(f"Starting {name}", flush=True)
+            began = time.monotonic()
+            record = {"suite": name, "command": command, "status": "running"}
+            manifest["jobs"].append(record)
             save()
-            raise
-        record.update(status="completed", exit_code=result.returncode,
-                      elapsed_s=round(time.monotonic() - began, 3))
-        save()
-        print(f"Finished {name}: exit={result.returncode}", flush=True)
-        if name == "doctor-before" and result.returncode:
-            manifest["status"] = "preflight_failed"
+            try:
+                with (destination / (name + ".log")).open("w") as output:
+                    result = subprocess.run(command, cwd=ROOT, stdout=output, stderr=subprocess.STDOUT)
+            except BaseException:
+                record["status"] = "interrupted"
+                manifest["status"] = "interrupted"
+                save()
+                raise
+            record.update(status="completed", exit_code=result.returncode,
+                          elapsed_s=round(time.monotonic() - began, 3))
             save()
-            return 1
+            print(f"Finished {name}: exit={result.returncode}", flush=True)
+            if name == "doctor-before" and result.returncode:
+                manifest["status"] = "preflight_failed"
+                save()
+                return 1
     manifest.update(status="completed", finished_utc=datetime.now(timezone.utc).isoformat())
     save()
     return int(any(job.get("exit_code") for job in manifest["jobs"]))

@@ -31,6 +31,7 @@ class DeploymentComparisonTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=runner.ROOT / "results") as folder:
             destination = Path(folder) / "new"
             with patch("sys.argv", self.argv(destination)), \
+                 patch.object(runner, "telemetry"), \
                  patch.object(runner.subprocess, "check_output", return_value="test\n"), \
                  patch.object(runner.subprocess, "run", return_value=subprocess.CompletedProcess([], 2)) as run, \
                  contextlib.redirect_stdout(io.StringIO()):
