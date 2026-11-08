@@ -2,7 +2,7 @@
 
 **A minimal, reproducible, public-ready benchmark harness for local LLM/VLM inference on NVIDIA Jetson AGX Thor.** Designed around an existing vLLM OpenAI-compatible server; no dependencies beyond Python's standard library.
 
-> **Status:** v0.4.0 candidate · Prototype (do not tag until PR review, CI, and Thor measurements). The source is unit-tested offline; live benchmark results must be collected on your own Jetson. Not affiliated with NVIDIA, Qwen, or vLLM.
+> **Status:** v0.5.0 candidate · Prototype (test tool routing on the existing Docker container before any memory A/B restart). Not affiliated with NVIDIA, Qwen, or vLLM.
 
 ## Why this repository?
 
@@ -18,6 +18,7 @@ Large, quantized MoE models now run on single 128 GB unified-memory devices, but
 | `vision` | Local image request / response completeness | Visual accuracy or camera FPS |
 | `prefix` | Independent first/repeat pairs, optional `/metrics` cache counters, TTFT/TTFC | That faster repetition proves cache was used |
 | `agent` | Long shared repository context with changing user task, optional cache evidence | A full coding-agent correctness or tool-use benchmark |
+| `tool-routing` | Real structured function selection and argument accuracy against six synthetic fixtures | Actual code execution or multi-step agent task completion |
 
 ## Prerequisites
 
@@ -90,6 +91,15 @@ The benchmark attempts read-only `/metrics` scrapes before/after each request an
 
 Or run the original short smoke sequence: `bash scripts/benchmark_baseline.sh`. The current launch script does not explicitly select prefix caching, and engine defaults vary. Do not equate these results with [Marco's 46.7 tok/s](https://forums.developer.nvidia.com/t/qwen3-8-flash-next-at-46-7-tok-s-on-jetson-agx-thor/383269) or [Ryan's real coding-agent trials](https://forums.developer.nvidia.com/t/qwen3-8-flash-next-at-46-7-tok-s-on-jetson-agx-thor/383269/6).
 
+
+### First-decision coding-agent tool routing (no Docker restart)
+
+```bash
+python3 -m thorbench.tool_eval --runs 2
+cat "$(ls -td results/*-tool-routing | head -1)/summary.md"
+```
+
+This uses **real model function-calling responses**, but never executes model-selected tools or shell commands. It scores six deterministic cases (including a no-tool negative control) and records timing without publishing prompts or generated arguments. See [tool-routing protocol](docs/AGENT_TOOL_EVAL.md), [decision workflow](docs/diagrams/10-agent-tool-evaluation.md), and the [memory/KV-cache A/B restart plan](docs/MEMORY_AB_EXPERIMENT.md). **Keep the current Docker container running until the baseline is recorded and the optional restart is explicitly scheduled.**
 
 ### Reasoning-mode comparison
 
@@ -173,6 +183,8 @@ Review `git diff`, CI and the anonymized metadata before opening a PR. Don't ove
 - [Published Shockwave prefix case study](docs/benchmarks/2026-11-07-shockwave-prefix.md) — measured data, illustrated, limitations
 - [Five-pair prefix and agent benchmark](docs/benchmarks/2026-11-07-shockwave-five-pair-prefix-agent.md) — measured TTFT, total latency, cache-counter evidence, graph
 - [Agent/prefix benchmark protocol](docs/AGENT_BENCHMARK_PROTOCOL.md) — repeatable experiments and cache evidence
+- [Tool-routing evaluation protocol](docs/AGENT_TOOL_EVAL.md) — first real tool decision, no execution
+- [Memory/KV-cache A/B restart plan](docs/MEMORY_AB_EXPERIMENT.md) — rollback-first controlled experiment
 - [Changelog](CHANGELOG.md)
 - [Security and disclosure](SECURITY.md)
 - [Contribution guidelines](CONTRIBUTING.md)

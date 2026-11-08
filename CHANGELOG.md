@@ -4,7 +4,13 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-### Added (v0.4.0 candidate)
+### Added (v0.5.0 candidate)
+- Read-only first-decision coding-agent tool-routing benchmark with exact structured function/argument scoring, offline tests, and no tool execution.
+- Memory/KV-cache A/B restart runbook with baseline capture, physical memory constraints, and rollback gates; Mermaid decision workflows.
+
+## [0.4.0] — 2026-11-07
+
+### Added
 - Repeated first/repeat prefix pairs (`--runs` counts pairs) and synthetic agent-like shared-context follow-ups with changing instructions.
 - Optional read-only Prometheus `/metrics` cache query/hit counter deltas, including explicit unavailable/zero/reset distinction and attribution caveats.
 - Paired comparisons in `summary.md`/`summary.json` with sample counts and clearly qualified TTFT ratios.
