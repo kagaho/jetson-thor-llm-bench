@@ -60,7 +60,7 @@
       "reported_metric": "TTFT cold -> warm (16K shared prefix)",
       "reported_value": "9.05 -> 1.0",
       "unit": "seconds",
-      "notes": "Reported by Ryan Johns; approximately 90% tokens cached on repeat; unlike a throughput test, this assesses repeated-prefix latency. Their agent runner includes separate compiler/test gates, not guaranteed production service."
+      "notes": "External field report; approximately 90% tokens cached on repeat; unlike a throughput test, this assesses repeated-prefix latency. The agent runner includes separate compiler/test gates, not guaranteed production service."
     }
   ]
 }

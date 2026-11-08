@@ -18,7 +18,7 @@ flowchart TD
 | Budget | Baseline | Alternative |
 |---|---|---|
 | GPU fraction | `--gpu-memory-utilization 0.90` passes | 0.93 failed at first reservation gate |
-| KV bytes | Unset; vLLM auto-inferred; ~5.28 GiB free at the 262K failure | Ryan reported fixed `--kv-cache-memory-bytes` 8 GiB on a *different* build |
+| KV bytes | Unset; vLLM auto-inferred; ~5.28 GiB free at the 262K failure | The external field report used fixed `--kv-cache-memory-bytes` 8 GiB on a *different* build |
 | Max context | `--max-model-len 212992` *advertised*, not fully tested | 262144 requested and failed KV fit at 0.90 |
 | `drop_caches` | Manual diagnostic, **not** part of benchmarking | Only reclaim filesystem cache when warranted; does not free live allocations |
 | KV dtype | No explicit `--kv-cache-dtype` | BF16 vs FP8 should be controlled for quality + cache capacity |
