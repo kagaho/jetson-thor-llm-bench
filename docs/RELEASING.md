@@ -16,6 +16,8 @@ Create labels `bug`, `benchmark`, `documentation`, `needs-reproduction`, `jetpac
 
 Use semantic versions `vMAJOR.MINOR.PATCH` as **annotated tags on `main`**. `CHANGELOG.md` is the human-readable changelog. The first release is `v0.1.0`; v0.2.0 adds provenance and workflow controls. GitHub Releases are created from merged, tagged commits. Never tag unmerged feature branches.
 
+The generalization evaluator also records its own `scorer_version` and `protocol_version`. These identify how a benchmark was requested and graded, independently of the package version in `pyproject.toml` and `thorbench/__init__.py`. A scorer revision such as `0.7.1` or `0.7.2` does **not** imply a matching GitHub tag or release. Before publishing a package release, review and merge its implementation, align package/changelog version declarations, pass CI on the merged commit, and only then create its annotated tag and GitHub Release. Preserve historical scorer identifiers when reporting older measurements.
+
 ## Initial publishing from Shockwave
 
 The following is for a fresh v0.1.0 checkout **without any v0.2.0 changes applied**. If you already applied the patches on a feature branch, do **not** switch to main with uncommitted modifications; complete the local feature branch first and publish only after reviewing the working tree:

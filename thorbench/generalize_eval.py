@@ -16,8 +16,10 @@ import secrets
 import statistics
 import sys
 import time
+from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any, Callable
 
@@ -26,6 +28,9 @@ KINDS = ("symbol_origin", "repair_regression", "moved_runbook",
          "transient_read", "environment_disambiguation", "no_tool_needed")
 SERVICES = ("ingest", "billing", "alerting", "search", "audit", "telemetry", "gateway", "indexer")
 SYMBOLS = ("RETRY_LIMIT", "QUEUE_MAX_DEPTH", "CACHE_TTL_SECONDS", "REQUEST_BUDGET")
+# Scoring revisions are independent of the unchanged model/fixture protocol.
+SCORER_VERSION = "0.7.3"
+PROTOCOL_VERSION = "1"
 
 TOOLS: tuple[dict[str, Any], ...] = (
     {"type": "function", "function": {
@@ -227,8 +232,39 @@ def _sequence(events: list[Event], *steps: tuple[str, str, str | None]) -> bool:
     return True
 
 
+_NUMBER_TOKEN = re.compile(
+    r"(?<![\w.,+\-−])[+\-−]?\d+(?:\.\d+)?(?:[eE][+\-−]?\d+)?(?!\w|[.,]\d)")
+
+
 def _num(answer: str, number: int) -> bool:
-    return re.search(r"(?<!\w)" + re.escape(str(number)) + r"(?!\w)", answer) is not None
+    """Compare complete numeric tokens exactly, without binary-float rounding.
+
+    This does not establish that a matching number describes the requested fact.
+    """
+    for match in _NUMBER_TOKEN.finditer(answer):
+        try:
+            value = Decimal(match.group().replace("−", "-"))
+        except InvalidOperation:
+            continue
+        if value == number:
+            return True
+    return False
+
+
+def _discovery_failure(events: list[Event], target: str) -> str | None:
+    """Require the discovery that actually returned the target to precede a read."""
+    discoveries = [i for i, e in enumerate(events)
+                   if e.name in {"list_files", "search_repository"}
+                   and e.outcome == "ok" and target in e.matches]
+    reads = [i for i, e in enumerate(events)
+             if e.name == "read_file" and e.outcome == "ok" and e.path == target]
+    if not discoveries:
+        return "missing_discovery"
+    if not reads:
+        return "missing_authoritative_read"
+    if min(discoveries) >= max(reads):
+        return "discovery_after_read"
+    return None
 
 
 def grade(case: Case, repo: InMemoryRepo, final: str) -> tuple[bool, str]:
@@ -236,13 +272,18 @@ def grade(case: Case, repo: InMemoryRepo, final: str) -> tuple[bool, str]:
     if not answer:
         return False, "empty_final"
     ev = repo.events
-    if case.kind == "symbol_origin":
-        found = any(e.name in {"search_repository", "list_files"} and
-                    case.target in e.matches for e in ev)
-        discovered_then_read = (any(_sequence(ev, (tool, "ok", None),
-                                              ("read_file", "ok", case.target))
-                                    for tool in ("search_repository", "list_files")))
-        ok = found and discovered_then_read and case.target in answer and _num(answer, case.expected_value)
+    if case.kind in {"symbol_origin", "moved_runbook"}:
+        # A known-broken old link need not be opened; either discovery tool works.
+        failure = _discovery_failure(ev, case.target)
+        if failure:
+            return False, failure
+        if case.target not in answer:
+            return False, "missing_active_path"
+        if case.kind == "moved_runbook" and "503" not in answer:
+            return False, "missing_http_status"
+        if not _num(answer, case.expected_value):
+            return False, "missing_expected_integer"
+        ok = True
     elif case.kind == "repair_regression":
         # Either inspecting the source or running the failing test may happen first;
         # only require that both precede the change, and a PASS follows it.
@@ -255,20 +296,6 @@ def grade(case: Case, repo: InMemoryRepo, final: str) -> tuple[bool, str]:
                            ("replace_text", "ok", case.target),
                            ("run_tests", "pass", case.test_target))
         ok = (path_a or path_b) and ("pass" in answer or "fixed" in answer or "success" in answer)
-    elif case.kind == "moved_runbook":
-        # An explicitly broken old link does not need to be opened. Require
-        # discovering the authoritative active path, then reading it.
-        discoveries = [
-            i for i, e in enumerate(ev)
-            if e.name in {"list_files", "search_repository"}
-            and e.outcome == "ok" and case.target in e.matches
-        ]
-        active_reads = [
-            i for i, e in enumerate(ev)
-            if e.name == "read_file" and e.outcome == "ok" and e.path == case.target
-        ]
-        ok = any(d < r for d in discoveries for r in active_reads)
-        ok = ok and case.target in answer and "503" in answer and _num(answer, case.expected_value)
     elif case.kind == "transient_read":
         errors = [e for e in ev if e.name == "read_file" and e.outcome == "temporary_unavailable" and e.path == case.target]
         ok = (len(errors) == case.injected_failures and
@@ -378,6 +405,7 @@ def run_episode(case: Case, send: Send, *, max_turns: int = 10, max_tool_calls: 
         break
     trace = [e.name + ":" + e.outcome for e in repo.events]
     return {"case": case.kind, "ok": bool(final_ok), "reason": reason,
+            "scorer_version": SCORER_VERSION, "protocol_version": PROTOCOL_VERSION,
             "turns": turns, "tool_calls": total_tools,
             "tool_errors": sum(e.outcome in {"invalid_arguments", "rejected", "not_found", "temporary_unavailable"} for e in repo.events),
             "recovered": bool(final_ok and case.kind in {"moved_runbook", "transient_read"}),
@@ -406,7 +434,11 @@ def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
                        "median_prompt_tokens": metric(group, "prompt_tokens"),
                        "median_completion_tokens": metric(group, "completion_tokens"),
                        "recoveries": sum(bool(r.get("recovered")) for r in group)}
-    return {"schema_version": 1, "suite": "agent-generalization", "passed": sum(bool(r["ok"]) for r in rows),
+    return {"schema_version": 1, "suite": "agent-generalization",
+            "scorer_version": SCORER_VERSION, "protocol_version": PROTOCOL_VERSION,
+            "failure_reasons": dict(sorted(Counter(r.get("reason", "unspecified")
+                                                   for r in rows if not r["ok"]).items())),
+            "passed": sum(bool(r["ok"]) for r in rows),
             "total": len(rows), "pass_rate": round(sum(bool(r["ok"]) for r in rows) / len(rows), 4) if rows else None,
             "median_elapsed_s": metric(rows, "elapsed_s"), "p90_elapsed_s": metric(rows, "elapsed_s", .9),
             "cases": cases, "note": "Seed-varying public synthetic fixtures; no real code, shell, host reads, or tests executed."}
@@ -428,6 +460,8 @@ def run_live(*, model: str, base_url: str, runs: int, seed: int | None, results_
     dest = new_run_dir(results_dir, "agent-generalization")
     metadata = {"timestamp_utc": datetime.now(timezone.utc).isoformat(), "model": model,
                 "suite": "agent-generalization", "seed": seed, "runs": runs,
+                "scorer_version": SCORER_VERSION, "protocol_version": PROTOCOL_VERSION,
+                "implementation_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                 "scenario_count": len(KINDS), "max_turns": max_turns, "max_tokens": max_tokens,
                 "simulated_only": True, "real_tool_execution": False}
     (dest / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
@@ -450,7 +484,8 @@ def run_live(*, model: str, base_url: str, runs: int, seed: int | None, results_
                            "turns": 0, "tool_calls": 0, "tool_errors": 0, "recovered": False,
                            "trace": [], "elapsed_s": round(time.monotonic() - started, 4),
                            "prompt_tokens": None, "completion_tokens": None}
-                row["repetition"] = repetition
+                row.update(repetition=repetition, scorer_version=SCORER_VERSION,
+                           protocol_version=PROTOCOL_VERSION)
                 rows.append(row)
                 stream.write(json.dumps(row, sort_keys=True) + "\n")
                 stream.flush()
@@ -461,7 +496,10 @@ def run_live(*, model: str, base_url: str, runs: int, seed: int | None, results_
     lines = ["# Seed-varying simulated-agent generalization", "",
              "**No model-generated shell commands, code or real tests were executed.**", "",
              f"- Seed: `{seed}` (saved for replay; generated answer keys are not sent to the model)",
+             f"- Scorer: `{SCORER_VERSION}`; protocol: `{PROTOCOL_VERSION}`",
              f"- Completed: **{stats['passed']}/{stats['total']}** ({stats['pass_rate']:.1%})",
+             "- Failure reasons: " + (", ".join(f"{reason}: {count}" for reason, count in
+                                                stats["failure_reasons"].items()) or "none"),
              f"- Median episode latency: **{stats['median_elapsed_s']:.2f}s**", "",
              "| Scenario | Passed | Total | Median turns | Median tools | Median prompt tokens | Median completion tokens | Median latency |",
              "|---|---:|---:|---:|---:|---:|---:|---:|---:|"]
