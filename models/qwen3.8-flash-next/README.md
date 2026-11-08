@@ -2,7 +2,9 @@
 
 **Status:** Confirmed to initialize and complete OpenAI-compatible chat requests on one 128 GB Jetson AGX Thor with JetPack 7.2.1. Full advertised context, image understanding accuracy and concurrency are **not yet validated**.
 
-| Property | Verified baseline / source |
+**Choose a profile:** the latest live inspection on 2026-11-08 matched B2, preferred for the current sequential benchmarks (`0.88`, 4 GiB KV, `131072` context). See the [serving-profile reference](../../docs/SERVING_PROFILES.md) for both full Docker commands, features, verification steps and limits. The table below records historical baseline A.
+
+| Property | Historical baseline A / source |
 |---|---|
 | Served name | `Qwen3.8-Flash-Next` |
 | Checkpoint | [`local-inference-lab/Qwen3.8-Flash-Next-NVFP4`](https://huggingface.co/local-inference-lab/Qwen3.8-Flash-Next-NVFP4) |
@@ -18,7 +20,7 @@
 
 Sources: [NVIDIA Jetson AI Lab recipe](https://www.jetson-ai-lab.com/models/qwen3-8-flash-next/), [Hugging Face checkpoint](https://huggingface.co/local-inference-lab/Qwen3.8-Flash-Next-NVFP4), [public comparison caveats](../../docs/PUBLIC_BENCHMARKS.md).
 
-## Serving recipe (optional)
+## Baseline A serving recipe (optional)
 
 [`serve.sh`](serve.sh) records the **working baseline**, not an automated installer. Requires Docker configured with the NVIDIA runtime and the appropriate access permissions.
 

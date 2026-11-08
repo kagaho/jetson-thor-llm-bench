@@ -81,6 +81,8 @@ GitHub release and remote-tag inspection confirmed that **v0.6.0 is the latest p
 
 ## Fresh versioned live run: scorer 0.7.2, 25/30
 
+The [visual results guide](../AGENT_GENERALIZATION_RESULTS.md) charts these outcomes and latencies and links the test-family and evaluation-workflow diagrams. Its numeric fixture preserves the provenance below.
+
 A fresh 30-episode run started at `de44842a07867d0f2a4dacf7dd67eea9e7df0857` using the healthy existing server:
 
 ```bash

@@ -1,6 +1,6 @@
 # Thor inference optimization matrix — evaluated sources vs untested knobs
 
-**Status: proposed v0.3.0.** Keep the validated `models/qwen3.8-flash-next/serve.sh` unchanged for the first A/B. The tracked [complete Docker invocation](../models/qwen3.8-flash-next/serve.sh) and [machine-readable declared launch profile](../models/qwen3.8-flash-next/launch-profile.json) describe the original working baseline. Use `thorbench bench --container qwen38-flash-next` to capture a **sanitized observation** of the actual running container's CLI flags. Observed flags are not necessarily effective vLLM defaults.
+This matrix retains the historical v0.2.0 baseline feature state and proposed experiments. For A/B2 profile selection, complete commands and the latest dated live observation, use the [serving-profile reference](SERVING_PROFILES.md). The tracked [baseline Docker invocation](../models/qwen3.8-flash-next/serve.sh) and [machine-readable declared launch profile](../models/qwen3.8-flash-next/launch-profile.json) describe the original A recipe. Use `thorbench bench --container qwen38-flash-next` to capture a **sanitized observation** of the actual running container's CLI flags. Observed flags are not necessarily effective vLLM defaults.
 
 ## What the forum results actually compare
 

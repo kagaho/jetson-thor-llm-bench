@@ -57,6 +57,8 @@ The model-specific deployment guide and launch script live under [`models/qwen3.
 
 ### Reproducing the **actual** launch configuration
 
+**Profile reference:** [complete A/B2 Docker commands, features and live verification](docs/SERVING_PROFILES.md). The latest inspection on 2026-11-08 matched B2 (`0.88`, 4 GiB KV, `131072` context), preferred for the current benchmarks. The `0.90` / `212992` command below is the historical A recipe; check the live flags before selecting a profile.
+
 The validated baseline is checked in as [full `docker run` recipe](models/qwen3.8-flash-next/serve.sh) plus [machine-readable deployment profile](models/qwen3.8-flash-next/launch-profile.json) (image digest at pull, all Docker runtime/volume/environment options and all vLLM arguments). The script is **not automatically executed** by benchmarks. Actual running flags can differ from this declaration; capture them safely using Docker inspection:
 
 ```bash
@@ -138,6 +140,10 @@ cat "$(ls -td results/*-agent-generalization | head -1)/summary.md"
 Run against the **existing** vLLM server without Docker changes. The default seed is randomly selected and recorded locally; results are gitignored. The generated fixtures are variants of *public templates*, not a statistically representative sample of unseen SWE tasks. Scores for v0.6.0's fixed tasks and v0.7.0's generated variants must be reported separately. See the [generalization protocol](docs/AGENT_GENERALIZATION_EVAL.md) and [seeded task diagram](docs/diagrams/13-generalization-seeded-fixtures.md).
 
 A developer run using scorer **0.7.2** completed **25/30** episodes: all five repository task families passed 5/5, while all five no-tool answers failed the brevity gate. This is a recorded historical score, separate from the current scorer revision. See the [versioned measurements and limitations](docs/benchmarks/2026-11-08-generalization-followup.md#fresh-versioned-live-run-scorer-072-2530).
+
+![Seeded family outcomes under scorer 0.7.2: 25 passes and five no-tool verbosity failures](docs/figures/agent-generalization-outcomes-2026-11-08.svg)
+
+The [visual results guide](docs/AGENT_GENERALIZATION_RESULTS.md) includes the latency graph, [test-family diagram](docs/diagrams/14-generalization-test-families.md), [evaluation workflow](docs/diagrams/13-generalization-seeded-fixtures.md), numeric source data and reproduction command.
 
 ### Reasoning-mode comparison
 
