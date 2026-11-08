@@ -52,7 +52,7 @@ def scripted_success(case):
         return [reply(call("read_file", {"path": case.old_path})),
                 reply(call("search_repository", {"query": "HTTP 503"})),
                 reply(call("read_file", {"path": case.target})),
-                reply(text=f"Current HTTP 503 limit: {case.expected_value} retries.")]
+                reply(text=f"Active runbook: {case.target}. Current HTTP 503 limit: {case.expected_value} retries.")]
     if case.kind == "transient_read":
         return [reply(call("read_file", {"path": case.target}, i)) for i in range(case.injected_failures + 1)] + [reply(text=f"Incident {case.expected_value}.")]
     if case.kind == "environment_disambiguation":
