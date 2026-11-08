@@ -256,10 +256,19 @@ def grade(case: Case, repo: InMemoryRepo, final: str) -> tuple[bool, str]:
                            ("run_tests", "pass", case.test_target))
         ok = (path_a or path_b) and ("pass" in answer or "fixed" in answer or "success" in answer)
     elif case.kind == "moved_runbook":
-        found = any(e.name == "search_repository" and case.target in e.matches for e in ev)
-        ok = found and _sequence(ev, ("read_file", "not_found", case.old_path),
-                                 ("search_repository", "ok", None), ("read_file", "ok", case.target))
-        ok = ok and "503" in answer and _num(answer, case.expected_value)
+        # An explicitly broken old link does not need to be opened. Require
+        # discovering the authoritative active path, then reading it.
+        discoveries = [
+            i for i, e in enumerate(ev)
+            if e.name in {"list_files", "search_repository"}
+            and e.outcome == "ok" and case.target in e.matches
+        ]
+        active_reads = [
+            i for i, e in enumerate(ev)
+            if e.name == "read_file" and e.outcome == "ok" and e.path == case.target
+        ]
+        ok = any(d < r for d in discoveries for r in active_reads)
+        ok = ok and case.target in answer and "503" in answer and _num(answer, case.expected_value)
     elif case.kind == "transient_read":
         errors = [e for e in ev if e.name == "read_file" and e.outcome == "temporary_unavailable" and e.path == case.target]
         ok = (len(errors) == case.injected_failures and
@@ -270,9 +279,12 @@ def grade(case: Case, repo: InMemoryRepo, final: str) -> tuple[bool, str]:
             ev, ("read_file", "ok", case.target), ("read_file", "ok", case.secondary))
         ok = ok and case.target in answer and _num(answer, case.expected_value) and "production" in answer
     else:
-        ok = (not ev and "ttft" in answer and
-              ("first token" in answer or "first generated token" in answer) and
-              ("task" in answer or "end-to-end" in answer or "total" in answer) and len(answer) <= 700)
+        semantic_ok = (not ev and "ttft" in answer and
+                       ("first token" in answer or "first generated token" in answer) and
+                       ("task" in answer or "end-to-end" in answer or "total" in answer))
+        if semantic_ok and len(answer) > 700:
+            return False, "excessive_verbosity"
+        ok = semantic_ok and len(answer) <= 700
     return (True, "completed") if ok else (False, "incomplete_or_ungrounded")
 
 
