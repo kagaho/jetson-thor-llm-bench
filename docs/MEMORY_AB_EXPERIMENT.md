@@ -2,6 +2,8 @@
 
 **Status as of November 8, 2026:** Candidate **B2 started successfully** with explicit 4 GiB KV cache, 131,072 maximum context and 0.88 startup utilization threshold. It passed 30/30 synthetic tool-routing cases, 5/5 prefix pairs, 5/5 synthetic agent pairs and two single-shot context retrieval probes. **Keep B2 running** for further stability testing; this is not a universal recommendation to replace high-context A.
 
+For operational selection, both full Docker commands, shared features and the later dated live inspection, use the [serving-profile reference](SERVING_PROFILES.md). The historical A/B measurements below remain unchanged.
+
 ## Configurations and observed results
 
 | Metric | Baseline A | Tuned B2 |

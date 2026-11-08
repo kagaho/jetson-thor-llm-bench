@@ -2,6 +2,8 @@
 
 **Purpose:** test whether a model can complete familiar *types* of tasks when exact synthetic paths, identifiers, values, and error conditions change. v0.6.0's 25/25 was five repetitions each of five **fixed** fixtures. This suite generates six families with **a distinct fixture for each seed and repetition**. It does not claim hidden-template generalization or real-world coding reliability.
 
+For diagrams of the test families and execution workflow, outcome counts and latency graphs, see the [visual results guide](AGENT_GENERALIZATION_RESULTS.md). The charts retain the measured scorer version separately from the released scorer.
+
 ## What changes between episodes?
 
 The deterministic fixture generator derives a stable SHA-256 sub-seed from `base_seed`, task-family name, and repetition index. The base seed is random by default (63-bit) and printed and recorded for reproduction of **the generated fixtures**; stochastic model outputs and timing may still differ between reruns. There is no nondeterministic dependence on Python's randomized `hash()`.

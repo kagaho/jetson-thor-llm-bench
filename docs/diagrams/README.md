@@ -1,6 +1,6 @@
 # Serving feature workflows — Mermaid source
 
-These diagrams render directly on GitHub. They describe **design and benchmark hypotheses**, not claims that every engine feature is currently enabled on Shockwave. Prefer reading [the optimization matrix](../OPTIMIZATION_MATRIX.md) for exact on/off/default states.
+These diagrams render directly on GitHub. They describe serving designs, benchmark workflows and evidence limits. For the latest dated serving configuration, use the [profile reference](../SERVING_PROFILES.md); the [optimization matrix](../OPTIMIZATION_MATRIX.md) retains historical baseline states and candidate experiments.
 
 | Diagram | Why it matters | Baseline state |
 |---|---|---|
@@ -16,6 +16,7 @@ These diagrams render directly on GitHub. They describe **design and benchmark h
 | [10 Tool-routing evaluation](10-agent-tool-evaluation.md) | Real structured tool decision, zero execution | 30/30 tested on A and B2 |
 | [11 Memory/KV A/B restart](11-memory-budget-restart.md) | Preserve baseline and rollback before changing cache budget | A→B failure→B2 startup and initial tests recorded |
 | [12 Multi-turn simulated agent](12-multi-turn-simulator.md) | Multi-step tool outcomes with bounded recovery and strict host-safety boundary | v0.6.0 observed 25/25 fixed synthetic episodes |
-| [13 Seeded agent generalization](13-generalization-seeded-fixtures.md) | Dynamic artificial fixtures and evidence scoring, no host execution | v0.7.0 candidate; live results pending |
+| [13 Seeded evaluation workflow](13-generalization-seeded-fixtures.md) | Oracle boundary, bounded model/tool loop, failure handling and private reports | Package 0.7.0 includes scorer 0.7.3; recorded 25/30 run used scorer 0.7.2 |
+| [14 Seeded test families](14-generalization-test-families.md) | Required observations, fixture state and final-answer gates for all six families | Five variants per family in the recorded run; no-tool 0/5 for verbosity |
 
-Each page also includes a state table, exact known flags, impact, safeguards, and measurement plan.
+The [results guide](../AGENT_GENERALIZATION_RESULTS.md) includes outcome and latency graphs with scorer/seed attribution. Individual diagrams explain their relevant state, evidence requirements and measurement limits.

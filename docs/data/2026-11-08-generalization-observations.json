@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "suite": "agent-generalization",
+  "evidence": "Reviewed numeric-only fields from the saved local report",
+  "source_report": "results/20261108T055906Z-agent-generalization",
+  "source_commit": "de44842a07867d0f2a4dacf7dd67eea9e7df0857",
+  "timestamp_utc": "2026-11-08T05:59:06.700358+00:00",
+  "seed": 3628200930879258838,
+  "runs": 5,
+  "scenario_count": 6,
+  "scorer_version": "0.7.2",
+  "protocol_version": "1",
+  "implementation_sha256": "9d76d9625578f95e6cf2b412e24109f092cbf97b897cd19f949969d78decf825",
+  "simulated_only": true,
+  "summary": {
+    "passed": 25,
+    "total": 30,
+    "pass_rate": 0.8333,
+    "median_elapsed_s": 18.8132,
+    "p90_elapsed_s": 41.3457,
+    "failure_reasons": {
+      "excessive_verbosity": 5
+    },
+    "cases": {
+      "symbol_origin": {
+        "passed": 5,
+        "total": 5,
+        "median_elapsed_s": 17.6038,
+        "p90_elapsed_s": 19.6796,
+        "median_turns": 3,
+        "median_tool_calls": 4,
+        "median_prompt_tokens": 2511,
+        "median_completion_tokens": 349
+      },
+      "repair_regression": {
+        "passed": 5,
+        "total": 5,
+        "median_elapsed_s": 45.4402,
+        "p90_elapsed_s": 48.8525,
+        "median_turns": 7,
+        "median_tool_calls": 9,
+        "median_prompt_tokens": 8251,
+        "median_completion_tokens": 937
+      },
+      "moved_runbook": {
+        "passed": 5,
+        "total": 5,
+        "median_elapsed_s": 27.353,
+        "p90_elapsed_s": 34.9893,
+        "median_turns": 3,
+        "median_tool_calls": 6,
+        "median_prompt_tokens": 2768,
+        "median_completion_tokens": 573
+      },
+      "transient_read": {
+        "passed": 5,
+        "total": 5,
+        "median_elapsed_s": 12.028,
+        "p90_elapsed_s": 15.0025,
+        "median_turns": 3,
+        "median_tool_calls": 2,
+        "median_prompt_tokens": 2298,
+        "median_completion_tokens": 236
+      },
+      "environment_disambiguation": {
+        "passed": 5,
+        "total": 5,
+        "median_elapsed_s": 20.2361,
+        "p90_elapsed_s": 22.7918,
+        "median_turns": 3,
+        "median_tool_calls": 4,
+        "median_prompt_tokens": 2504,
+        "median_completion_tokens": 404
+      },
+      "no_tool_needed": {
+        "passed": 0,
+        "total": 5,
+        "median_elapsed_s": 13.6914,
+        "p90_elapsed_s": 14.2744,
+        "median_turns": 1,
+        "median_tool_calls": 0,
+        "median_prompt_tokens": 699,
+        "median_completion_tokens": 304
+      }
+    }
+  }
+}
