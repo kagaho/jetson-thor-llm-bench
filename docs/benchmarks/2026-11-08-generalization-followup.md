@@ -61,7 +61,7 @@ Independent offline controls exposed a different false positive: `symbol_origin`
 
 Scorer **0.7.2** fixes that chronology check and adds explicit failure reasons to both discovery families. Tests also cover every new runbook reason with a successful control, unchanged source/final-fact gates, failure denominators, report provenance, and privacy on model and request failures. The [protocol documentation](../AGENT_GENERALIZATION_EVAL.md#v072-scorer-discovery-chronology-and-private-diagnostics) defines these additive report fields and the unchanged protocol 1.
 
-The targeted generalization suite passes **29 tests**; the full offline suite passes **96 tests** on Python 3.12.3 with the follow-up source changes. Compileall, offline references and `git diff --check` also pass. These commands should be run against the follow-up commit when reviewing it. No v0.7.2 full live-suite score is claimed here.
+At commit `de44842a07867d0f2a4dacf7dd67eea9e7df0857`, the targeted generalization suite passed **29 tests**; the full offline suite passed **96 tests** on Python 3.12.3. Compileall, offline references and `git diff --check` also passed. These commands should be run against that commit when reviewing it. No v0.7.2 full live-suite score is inferred from the targeted replay.
 
 The validated `thorbench/generalize_eval.py` source fingerprint is `9d76d9625578f95e6cf2b412e24109f092cbf97b897cd19f949969d78decf825` (SHA-256).
 

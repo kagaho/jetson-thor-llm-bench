@@ -19,6 +19,7 @@ import time
 from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Any, Callable
 
@@ -28,7 +29,7 @@ KINDS = ("symbol_origin", "repair_regression", "moved_runbook",
 SERVICES = ("ingest", "billing", "alerting", "search", "audit", "telemetry", "gateway", "indexer")
 SYMBOLS = ("RETRY_LIMIT", "QUEUE_MAX_DEPTH", "CACHE_TTL_SECONDS", "REQUEST_BUDGET")
 # Scoring revisions are independent of the unchanged model/fixture protocol.
-SCORER_VERSION = "0.7.2"
+SCORER_VERSION = "0.7.3"
 PROTOCOL_VERSION = "1"
 
 TOOLS: tuple[dict[str, Any], ...] = (
@@ -231,8 +232,23 @@ def _sequence(events: list[Event], *steps: tuple[str, str, str | None]) -> bool:
     return True
 
 
+_NUMBER_TOKEN = re.compile(
+    r"(?<![\w.,+\-−])[+\-−]?\d+(?:\.\d+)?(?:[eE][+\-−]?\d+)?(?!\w|[.,]\d)")
+
+
 def _num(answer: str, number: int) -> bool:
-    return re.search(r"(?<!\w)" + re.escape(str(number)) + r"(?!\w)", answer) is not None
+    """Compare complete numeric tokens exactly, without binary-float rounding.
+
+    This does not establish that a matching number describes the requested fact.
+    """
+    for match in _NUMBER_TOKEN.finditer(answer):
+        try:
+            value = Decimal(match.group().replace("−", "-"))
+        except InvalidOperation:
+            continue
+        if value == number:
+            return True
+    return False
 
 
 def _discovery_failure(events: list[Event], target: str) -> str | None:

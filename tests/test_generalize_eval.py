@@ -138,6 +138,27 @@ class SimulatorSafetyTests(unittest.TestCase):
 
 
 class EpisodeTests(unittest.TestCase):
+    def test_numeric_values_are_not_substrings_of_wrong_numbers(self):
+        for seed in (1, 54, 4321):
+            for kind in ("symbol_origin", "moved_runbook", "environment_disambiguation"):
+                case = generate(kind, episode_seed(seed, kind, 1))
+                repo = InMemoryRepo(case)
+                repo.execute("list_files", json.dumps({"directory": "."}))
+                if kind == "environment_disambiguation":
+                    repo.execute("read_file", json.dumps({"path": case.secondary}))
+                repo.execute("read_file", json.dumps({"path": case.target}))
+                number = case.expected_value
+                correct = (str(number), f"+{number}", f"{number}.0", f"{number}e0",
+                           f"{number}E+0", f"**{number}**", f"{number}.", f"{number}, retries")
+                wrong = (f"-{number}", f"−{number}", f"{number}.5", f"0.{number}",
+                         f"{number}.000000000000000000001",
+                         f"{number},000", f"{number}e3", f"{number}e-3",
+                         f"{number}e" + "9" * 40, f"identifier{number}")
+                for value in correct + wrong:
+                    with self.subTest(seed=seed, kind=kind, value=value):
+                        answer = f"Production file {case.target}. HTTP 503 value: {value}"
+                        self.assertEqual(grade(case, repo, answer)[0], value in correct)
+
     def test_symbol_discovery_must_precede_authoritative_read(self):
         for seed in (1, 54, 4321):
             case = generate("symbol_origin", episode_seed(seed, "symbol_origin", 1))
@@ -325,7 +346,7 @@ class ReportsTests(unittest.TestCase):
                 {"case": "symbol_origin", "ok": False, "reason": "request_error"}]
         result = summarize(rows)
         self.assertEqual((result["passed"], result["total"], result["pass_rate"]), (1, 5, .2))
-        self.assertEqual(result["scorer_version"], "0.7.2")
+        self.assertEqual(result["scorer_version"], "0.7.3")
         self.assertEqual(result["protocol_version"], "1")
         self.assertEqual(result["failure_reasons"],
                          {"missing_http_status": 1, "excessive_verbosity": 2, "request_error": 1})
@@ -376,15 +397,15 @@ class ReportsTests(unittest.TestCase):
             self.assertEqual(result["passed"], len(KINDS))
             metadata = json.loads((dest / "metadata.json").read_text())
             self.assertEqual(metadata["seed"], seed)
-            self.assertEqual(metadata["scorer_version"], "0.7.2")
+            self.assertEqual(metadata["scorer_version"], "0.7.3")
             self.assertEqual(metadata["protocol_version"], "1")
             self.assertRegex(metadata["implementation_sha256"], r"^[a-f0-9]{64}$")
             samples = [json.loads(line) for line in (dest / "samples.jsonl").read_text().splitlines()]
             self.assertEqual(len(samples), len(KINDS))
             self.assertEqual(samples[0]["repetition"], 1)
             self.assertIn("6/6", (dest / "summary.md").read_text())
-            self.assertIn("0.7.2", (dest / "summary.md").read_text())
-            self.assertEqual(samples[0]["scorer_version"], "0.7.2")
+            self.assertIn("0.7.3", (dest / "summary.md").read_text())
+            self.assertEqual(samples[0]["scorer_version"], "0.7.3")
             for file in dest.iterdir():
                 raw = file.read_text()
                 self.assertNotIn("ACTIVE production configuration", raw)
@@ -407,7 +428,7 @@ class ReportsTests(unittest.TestCase):
             self.assertIn("excessive_verbosity: 1", (dest / "summary.md").read_text())
             samples = [json.loads(line) for line in (dest / "samples.jsonl").read_text().splitlines()]
             request_error = next(row for row in samples if row["reason"] == "request_error")
-            self.assertEqual(request_error["scorer_version"], "0.7.2")
+            self.assertEqual(request_error["scorer_version"], "0.7.3")
             self.assertEqual(request_error["error_type"], "OSError")
             for file in dest.iterdir():
                 self.assertNotIn("PRIVATE_ANSWER_CANARY", file.read_text())

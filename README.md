@@ -2,7 +2,9 @@
 
 **A minimal, reproducible, public-ready benchmark harness for local LLM/VLM inference on NVIDIA Jetson AGX Thor.** Designed around an existing vLLM OpenAI-compatible server; no dependencies beyond Python's standard library.
 
-> **Status:** v0.7.0 development candidate · 25/25 observed completions on five *fixed synthetic* multi-turn tasks, with 67/67 offline tests; not a real-repository coding-quality benchmark. v0.6.0 is released. Not affiliated with NVIDIA, Qwen, or vLLM.
+> **Status:** v0.7.0 development candidate; v0.6.0 is released. These synthetic benchmarks do not establish real-repository coding quality. Not affiliated with NVIDIA, Qwen, or vLLM.
+
+**Release versus scorer versions:** the published GitHub release is [v0.6.0](https://github.com/kagaho/jetson-thor-llm-bench/releases/tag/v0.6.0). The v0.7 package is still under development. References to scorer revisions `0.7.1` and later identify evaluation behavior on feature branches; they do not announce package releases or GitHub tags. See the [generalization scoring history](docs/AGENT_GENERALIZATION_EVAL.md) and [release workflow](docs/RELEASING.md).
 
 ## Why this repository?
 

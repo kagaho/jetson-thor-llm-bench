@@ -45,9 +45,19 @@ For these two families, failures report the first unmet gate in this order:
 
 These categories identify failed heuristic checks, not semantic judgments. For example, `missing_expected_integer` can also reject a number written in words. Numeric coincidences, substring matches, and other limitations of the final-answer heuristics remain. No oracle values, generated arguments, paths or answer text are added to reports. The other families retain their existing failure categories, including the 700-character no-tool cap.
 
-New metadata, samples and summaries identify `scorer_version: "0.7.2"` and `protocol_version: "1"`. Protocol 1 names the existing fixture generation, prompts, tools and request settings; these have not changed. Metadata also stores `implementation_sha256`, a SHA-256 fingerprint of the evaluator's own module source, to distinguish local source revisions without publishing host paths or invoking Git. JSON and Markdown summaries count failure reasons with every failed episode still in the denominator, including request errors.
+Reports produced by scorer 0.7.2 identify `scorer_version: "0.7.2"` and `protocol_version: "1"`. Protocol 1 names the existing fixture generation, prompts, tools and request settings; these have not changed. Metadata also stores `implementation_sha256`, a SHA-256 fingerprint of the evaluator's own module source, to distinguish local source revisions without publishing host paths or invoking Git. JSON and Markdown summaries count failure reasons with every failed episode still in the denominator, including request errors.
 
 The package remains a v0.7.0 development candidate; the scorer has its own version. Reports predating these fields must retain their historical scorer attribution and scores. A seed alone never proves the same model response or scorer. See the [local validation and follow-up investigation](benchmarks/2026-11-08-generalization-followup.md) for the completed 30-episode run and a separate targeted diagnostic replay.
+
+## Scorer revision 0.7.3: exact numeric values (unreleased)
+
+Offline positive and negative controls demonstrated that the old word-boundary integer search could accept a wrong negative, a decimal containing the expected digits, or the leading group of a thousands-formatted number. For example, an expected value of `7` incorrectly matched `-7`, `7.5`, `0.7` and `7,000`. This affected `symbol_origin`, `moved_runbook` and `environment_disambiguation` even with all required authoritative observations present.
+
+Scorer 0.7.3 compares complete numeric tokens using standard-library `Decimal`, preserving the exact expected value without floating-point rounding. A plain integer, explicit positive sign, mathematically equivalent decimal/scientific notation, Markdown emphasis and sentence punctuation can all qualify. Wrong signed or fractional values, larger grouped numbers and identifier substrings fail the numeric gate. Invalid or unrepresentable exponents do not crash grading. Grouped thousands notation is not supported by this token grammar; generated expected values are small positive integers.
+
+The existing `missing_expected_integer` category now denotes absence of a numeric token equal to the expected integer in the discovery families. The environment family retains its generic failure category. All discovery, authoritative-read, tool-order and final-path gates remain independent; fixture generation, request prompts/settings and the 700-character no-tool control are unchanged. New reports identify scorer `0.7.3`, protocol `1`, and the updated evaluator source fingerprint.
+
+This is still a heuristic presence check: a correct number in an unrelated or contradictory part of an answer can qualify, and number words remain unsupported. The numeric correction does not establish semantic correctness. Do not regrade earlier reports lacking final answers or relabel a run made with scorer 0.7.2. Scorer revisions 0.7.1–0.7.3 are development identifiers, not published package versions or GitHub Releases.
 
 ## Safety and request protocol
 

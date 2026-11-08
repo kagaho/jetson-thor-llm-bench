@@ -12,6 +12,8 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Fixed
 - Generalization scorer v0.7.2 rejects symbol-origin traces where an unrelated search precedes the active-file read but actual active-path discovery occurs only afterward; positive and negative seeded controls preserve valid discovery/read traces.
+- Generalization scorer 0.7.3 compares complete numeric tokens with exact decimal arithmetic, rejecting wrong signed/fractional/grouped values that previously matched expected integer digits while accepting equivalent numeric notation. Seeded positive and negative controls cover all three affected task families.
+- Clarify that scorer revision numbers are separate from package versions, GitHub tags and published releases; the v0.7 package remains under development.
 - Document the existing 24/30 seed-varying run separately from the original 4/6 and corrected 5/6 results; no historical outcomes are rescored.
 
 ## [0.6.0] — 2026-11-08
