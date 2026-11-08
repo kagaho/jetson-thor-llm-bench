@@ -28,6 +28,27 @@ The original runbook scorer wrongly required attempting the explicitly broken ol
 
 The no-tool control still requires a brief answer (≤700 characters). Responses that otherwise satisfy the no-tool and terminology requirements but exceed that cap now receive `excessive_verbosity` rather than the generic `incomplete_or_ungrounded`. Historical v0.7.0 results remain unchanged; distinguish new v0.7.1 scoring from prior scores in reports.
 
+## v0.7.2 scorer: discovery chronology and private diagnostics
+
+The `symbol_origin` scorer now requires the **particular list/search result containing the active path** to precede a successful read of that path. Previously, an unrelated search before the read plus actual discovery afterward could incorrectly pass. Reading the file again after discovery satisfies the existing evidence contract. Both discovery tools remain valid, and `moved_runbook` uses the same chronology check as before.
+
+For these two families, failures report the first unmet gate in this order:
+
+| Reason | Missing evidence or final-answer fact |
+|---|---|
+| `missing_discovery` | No successful list/search returned the active path |
+| `missing_authoritative_read` | No successful read of the active file |
+| `discovery_after_read` | Active-path discovery has no subsequent successful active-file read |
+| `missing_active_path` | Final answer omits the active path |
+| `missing_http_status` | Runbook final answer omits the existing `503` substring requirement |
+| `missing_expected_integer` | Final answer lacks the existing exact-integer match |
+
+These categories identify failed heuristic checks, not semantic judgments. For example, `missing_expected_integer` can also reject a number written in words. Numeric coincidences, substring matches, and other limitations of the final-answer heuristics remain. No oracle values, generated arguments, paths or answer text are added to reports. The other families retain their existing failure categories, including the 700-character no-tool cap.
+
+New metadata, samples and summaries identify `scorer_version: "0.7.2"` and `protocol_version: "1"`. Protocol 1 names the existing fixture generation, prompts, tools and request settings; these have not changed. Metadata also stores `implementation_sha256`, a SHA-256 fingerprint of the evaluator's own module source, to distinguish local source revisions without publishing host paths or invoking Git. JSON and Markdown summaries count failure reasons with every failed episode still in the denominator, including request errors.
+
+The package remains a v0.7.0 development candidate; the scorer has its own version. Reports predating these fields must retain their historical scorer attribution and scores. A seed alone never proves the same model response or scorer. See the [local validation and follow-up investigation](benchmarks/2026-11-08-generalization-followup.md) for the completed 30-episode run and a separate targeted diagnostic replay.
+
 ## Safety and request protocol
 
 The model receives OpenAI-compatible nonstreaming `chat/completions` requests with `tool_choice=auto` and `reasoning_effort=low`. Between turns the harness replays the assistant tool calls and synthetic tool response messages with matching `tool_call_id`. The only network traffic is to the configured model API.

@@ -138,6 +138,47 @@ class SimulatorSafetyTests(unittest.TestCase):
 
 
 class EpisodeTests(unittest.TestCase):
+    def test_symbol_discovery_must_precede_authoritative_read(self):
+        for seed in (1, 54, 4321):
+            case = generate("symbol_origin", episode_seed(seed, "symbol_origin", 1))
+            for tool, unrelated, discovery in (
+                ("list_files", {"directory": "examples"}, {"directory": "src"}),
+                ("search_repository", {"query": "README.md"}, {"query": case.symbol}),
+            ):
+                for reread in (False, True):
+                    with self.subTest(seed=seed, tool=tool, reread=reread):
+                        responses = [reply(call(tool, unrelated)),
+                                     reply(call("read_file", {"path": case.target})),
+                                     reply(call(tool, discovery))]
+                        if reread:
+                            responses.append(reply(call("read_file", {"path": case.target})))
+                        responses.append(reply(text=f"{case.target}: {case.expected_value}."))
+                        result = run_episode(case, Scripted(responses))
+                        self.assertEqual(result["ok"], reread, result)
+
+    def test_runbook_failure_reasons_identify_missing_gate(self):
+        for seed in (1, 54, 4321):
+            case = generate("moved_runbook", episode_seed(seed, "moved_runbook", 1))
+            discovery = reply(call("list_files", {"directory": "."}))
+            read = reply(call("read_file", {"path": case.target}))
+            answer = f"{case.target}: HTTP 503, {case.expected_value} retries."
+            controls = (
+                ([read], answer, "missing_discovery"),
+                ([discovery, reply(call("read_file", {"path": case.secondary}))],
+                 answer, "missing_authoritative_read"),
+                ([read, discovery], answer, "discovery_after_read"),
+                ([discovery, read], f"HTTP 503, {case.expected_value} retries.", "missing_active_path"),
+                ([discovery, read], f"{case.target}: {case.expected_value} retries.", "missing_http_status"),
+                ([discovery, read], f"{case.target}: HTTP 503, {case.expected_value + 1} retries.",
+                 "missing_expected_integer"),
+                ([discovery, read], answer, "completed"),
+            )
+            for responses, final, reason in controls:
+                with self.subTest(seed=seed, reason=reason):
+                    result = run_episode(case, Scripted(responses + [reply(text=final)]))
+                    self.assertEqual(result["reason"], reason)
+                    self.assertEqual(result["ok"], reason == "completed")
+
     def test_successful_generated_cases(self):
         for seed in (1, 54, 4321):
             for kind in KINDS:
@@ -276,6 +317,20 @@ class EpisodeTests(unittest.TestCase):
 
 
 class ReportsTests(unittest.TestCase):
+    def test_summary_versions_and_failure_reasons_keep_all_episodes(self):
+        rows = [{"case": "moved_runbook", "ok": True, "reason": "completed"},
+                {"case": "moved_runbook", "ok": False, "reason": "missing_http_status"},
+                {"case": "no_tool_needed", "ok": False, "reason": "excessive_verbosity"},
+                {"case": "no_tool_needed", "ok": False, "reason": "excessive_verbosity"},
+                {"case": "symbol_origin", "ok": False, "reason": "request_error"}]
+        result = summarize(rows)
+        self.assertEqual((result["passed"], result["total"], result["pass_rate"]), (1, 5, .2))
+        self.assertEqual(result["scorer_version"], "0.7.2")
+        self.assertEqual(result["protocol_version"], "1")
+        self.assertEqual(result["failure_reasons"],
+                         {"missing_http_status": 1, "excessive_verbosity": 2, "request_error": 1})
+        self.assertEqual(summarize([])["failure_reasons"], {})
+
     def test_summary_counts_failures_and_p90(self):
         rows = [{"case": "symbol_origin", "ok": True, "elapsed_s": 2, "turns": 3, "tool_calls": 2,
                  "prompt_tokens": 10, "completion_tokens": 5},
@@ -298,6 +353,7 @@ class ReportsTests(unittest.TestCase):
         cases = {generate(kind, episode_seed(seed, kind, 1)).instruction:
                  generate(kind, episode_seed(seed, kind, 1)) for kind in KINDS}
         scripts = {instruction: scripted_success(case) for instruction, case in cases.items()}
+        request_error_instruction = None
 
         class FakeClient:
             def __init__(self, base_url, model, timeout):
@@ -308,6 +364,8 @@ class ReportsTests(unittest.TestCase):
                 return [{"id": self.model}]
             def _request(self, path, payload):
                 instruction = payload["messages"][1]["content"]
+                if instruction == request_error_instruction:
+                    raise OSError("PRIVATE_REQUEST_CANARY")
                 turn = sum(m["role"] == "assistant" for m in payload["messages"])
                 return io.BytesIO(json.dumps(scripts[instruction][turn]).encode())
 
@@ -316,16 +374,44 @@ class ReportsTests(unittest.TestCase):
                 dest, result = run_live(model="mock", base_url="http://127.0.0.1:8000",
                                         seed=seed, runs=1, results_dir=Path(folder))
             self.assertEqual(result["passed"], len(KINDS))
-            self.assertEqual(json.loads((dest / "metadata.json").read_text())["seed"], seed)
+            metadata = json.loads((dest / "metadata.json").read_text())
+            self.assertEqual(metadata["seed"], seed)
+            self.assertEqual(metadata["scorer_version"], "0.7.2")
+            self.assertEqual(metadata["protocol_version"], "1")
+            self.assertRegex(metadata["implementation_sha256"], r"^[a-f0-9]{64}$")
             samples = [json.loads(line) for line in (dest / "samples.jsonl").read_text().splitlines()]
             self.assertEqual(len(samples), len(KINDS))
             self.assertEqual(samples[0]["repetition"], 1)
             self.assertIn("6/6", (dest / "summary.md").read_text())
+            self.assertIn("0.7.2", (dest / "summary.md").read_text())
+            self.assertEqual(samples[0]["scorer_version"], "0.7.2")
             for file in dest.iterdir():
                 raw = file.read_text()
                 self.assertNotIn("ACTIVE production configuration", raw)
                 self.assertNotIn("Synthetic workspace", raw)
                 self.assertNotIn("update_in_memory_only", raw)
+
+        no_tool_instruction = next(instruction for instruction, case in cases.items()
+                                   if case.kind == "no_tool_needed")
+        scripts[no_tool_instruction] = [reply(text=(
+            "TTFT is time to first token; total end-to-end task latency includes all work. "
+            + "PRIVATE_ANSWER_CANARY " * 40))]
+        request_error_instruction = next(instruction for instruction, case in cases.items()
+                                         if case.kind == "moved_runbook")
+        with tempfile.TemporaryDirectory() as folder:
+            with patch("thorbench.client.VLLMClient", FakeClient):
+                dest, result = run_live(model="mock", base_url="http://127.0.0.1:8000",
+                                        seed=seed, runs=1, results_dir=Path(folder))
+            self.assertEqual((result["passed"], result["total"]), (4, 6))
+            self.assertEqual(result["failure_reasons"], {"excessive_verbosity": 1, "request_error": 1})
+            self.assertIn("excessive_verbosity: 1", (dest / "summary.md").read_text())
+            samples = [json.loads(line) for line in (dest / "samples.jsonl").read_text().splitlines()]
+            request_error = next(row for row in samples if row["reason"] == "request_error")
+            self.assertEqual(request_error["scorer_version"], "0.7.2")
+            self.assertEqual(request_error["error_type"], "OSError")
+            for file in dest.iterdir():
+                self.assertNotIn("PRIVATE_ANSWER_CANARY", file.read_text())
+                self.assertNotIn("PRIVATE_REQUEST_CANARY", file.read_text())
 
 
 if __name__ == "__main__":
