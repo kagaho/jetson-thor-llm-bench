@@ -4,7 +4,14 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
-### Added (v0.6.0 candidate)
+### Added (v0.7.0 candidate; live seed-varying results pending)
+- Seed-varying, in-memory agent benchmark with six task families, generated repository paths, identifiers, values, decoys, and retryable failures.
+- Reproducible fixture seeds, strict allowlisted simulated tools, evidence-ordered completion scoring, and private summary reports including token usage and p90 task latency.
+- Offline safety, state, scoring and API-protocol tests; seeded variants are not independently withheld real-world coding tasks.
+
+## [0.6.0] — 2026-11-08
+
+### Added
 - Multi-turn coding-agent evaluator using an isolated, deterministic in-memory repository with four simulated tools and five task-level outcomes.
 - Explicit missing-document and transient-error recovery, synthetic test-fix-retest scoring, and no-tool negative control.
 - Private numeric per-task metrics (latency, turns, simulated calls, error/recovery counts, summed prompt/completion tokens) and guarded result limits.

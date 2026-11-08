@@ -2,7 +2,7 @@
 
 **A minimal, reproducible, public-ready benchmark harness for local LLM/VLM inference on NVIDIA Jetson AGX Thor.** Designed around an existing vLLM OpenAI-compatible server; no dependencies beyond Python's standard library.
 
-> **Status:** v0.6.0 candidate · 25/25 observed completions on five *fixed synthetic* multi-turn tasks, with 67/67 offline tests; not a real-repository coding-quality benchmark. v0.5.0 is released. Not affiliated with NVIDIA, Qwen, or vLLM.
+> **Status:** v0.7.0 development candidate · 25/25 observed completions on five *fixed synthetic* multi-turn tasks, with 67/67 offline tests; not a real-repository coding-quality benchmark. v0.6.0 is released. Not affiliated with NVIDIA, Qwen, or vLLM.
 
 ## Why this repository?
 
@@ -19,6 +19,7 @@ Large, quantized MoE models now run on single 128 GB unified-memory devices, but
 | `prefix` | Independent first/repeat pairs, optional `/metrics` cache counters, TTFT/TTFC | That faster repetition proves cache was used |
 | `agent` | Long shared repository context with changing user task, optional cache evidence | A full coding-agent correctness or tool-use benchmark |
 | `tool-routing` | Real structured function selection and argument accuracy against six synthetic fixtures | Actual code execution or multi-step agent task completion |
+| `agent-generalization` | Seed-derived synthetic repo variations, decoys, fault recovery, and multi-turn outcome scoring | Held-out real repos, arbitrary coding correctness or sandboxed execution |
 | `agent-multiturn` | Five deterministic simulated repository episodes with intermediate tool observations and recovery | Executed shell commands, real code edits, or open-ended agent reliability |
 
 ## Prerequisites
@@ -118,6 +119,21 @@ On Shockwave's existing B2 container, the five fixed synthetic tasks completed *
 B2 started successfully using **4 GiB explicit KV cache**, **0.88 startup utilization threshold**, and **131,072 max context**, with **30/30** first-decision tool-routing passes and successful 8K/32K targeted retrieval. Available RAM was **2.9 GiB** after tests versus a **1.1 GiB** baseline snapshot, but conditions were not matched. Some B2 tool cases generated *more tokens*, explaining much of the observed total-latency difference. **B2 trades away configured context capacity** and is not established as generally superior.
 
 Use the [A/B benchmark case study](docs/benchmarks/2026-11-08-shockwave-b2-vs-a.md), [generated-output versus input-length analysis](docs/benchmarks/2026-11-08-shockwave-b2-output-length-context.md), and [memory runbook](docs/MEMORY_AB_EXPERIMENT.md). Launch scripts are [baseline A](models/qwen3.8-flash-next/serve.sh) and [pinned B2 experimental profile](models/qwen3.8-flash-next/serve-lowmem.sh). **Do not run either script while a serving container is already active.**
+
+### v0.7.0: Seed-varying simulated-agent generalization (no restart)
+
+The v0.6.0 benchmark completed 25/25 **repetitions of five fixed public tasks**, not 25 unique coding problems. The v0.7.0 candidate generates **six task families with fresh synthetic paths, values, distractors and error patterns** for each seeded episode; it checks ordered tool observations, final-answer facts, and in-memory fixture state. It still does **not** execute code, run actual tests or modify the host repository.
+
+```bash
+# After checking out the v0.7 feature branch:
+python3 -m unittest discover -s tests -v
+python3 -m thorbench.generalize_eval --runs 1
+cat "$(ls -td results/*-agent-generalization | head -1)/summary.md"
+# Reproduce a specific run using the seed printed and stored in metadata.json:
+# python3 -m thorbench.generalize_eval --runs 1 --seed 123456
+```
+
+Run against the **existing** vLLM server without Docker changes. The default seed is randomly selected and recorded locally; results are gitignored. The generated fixtures are variants of *public templates*, not a statistically representative sample of unseen SWE tasks. Scores for v0.6.0's fixed tasks and v0.7.0's generated variants must be reported separately. See the [generalization protocol](docs/AGENT_GENERALIZATION_EVAL.md) and [seeded task diagram](docs/diagrams/13-generalization-seeded-fixtures.md).
 
 ### Reasoning-mode comparison
 

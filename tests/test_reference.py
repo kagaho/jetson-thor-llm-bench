@@ -34,7 +34,7 @@ class ReferenceTests(unittest.TestCase):
             self.assertIn("46.7", output)
 
     def test_version(self):
-        self.assertEqual(__version__, "0.6.0")
+        self.assertEqual(__version__, "0.7.0")
 
 if __name__ == "__main__":
     unittest.main()

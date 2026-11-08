@@ -15,6 +15,7 @@ These diagrams render directly on GitHub. They describe **design and benchmark h
 | [09 Agent shared-context sequence](09-agent-prefix-sequence.md) | Stable repository context, changing tasks | Synthetic responsiveness, not full agent correctness |
 | [10 Tool-routing evaluation](10-agent-tool-evaluation.md) | Real structured tool decision, zero execution | 30/30 tested on A and B2 |
 | [11 Memory/KV A/B restart](11-memory-budget-restart.md) | Preserve baseline and rollback before changing cache budget | A→B failure→B2 startup and initial tests recorded |
-| [12 Multi-turn simulated agent](12-multi-turn-simulator.md) | Multi-step tool outcomes with bounded recovery and strict host-safety boundary | Experimental v0.6.0; live results pending |
+| [12 Multi-turn simulated agent](12-multi-turn-simulator.md) | Multi-step tool outcomes with bounded recovery and strict host-safety boundary | v0.6.0 observed 25/25 fixed synthetic episodes |
+| [13 Seeded agent generalization](13-generalization-seeded-fixtures.md) | Dynamic artificial fixtures and evidence scoring, no host execution | v0.7.0 candidate; live results pending |
 
 Each page also includes a state table, exact known flags, impact, safeguards, and measurement plan.
