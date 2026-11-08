@@ -16,9 +16,10 @@ class MemoryAndOutputTests(unittest.TestCase):
         self.assertEqual(profile['parameters']['gpu_memory_utilization'],.88)
         for text in ('--gpu-memory-utilization 0.88','--kv-cache-memory-bytes 4294967296',
                      '--max-model-len 131072','--max-num-seqs 1',
-                     'docker container inspect "$NAME"','exec docker run -it --rm'):
+                     'docker container inspect "$NAME"','exec docker run -d --restart=no'):
             self.assertIn(text,script)
         self.assertNotIn('docker stop',script)
+        self.assertNotIn('--rm',script)
         self.assertIn('512bf772c7ef221df1a66ab9c95546d77daeba6ba61723692852e6eb0cae7526',script)
 
     def test_tool_summary_has_per_case_token_counts(self):

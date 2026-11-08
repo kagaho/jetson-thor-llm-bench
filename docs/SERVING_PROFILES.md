@@ -50,16 +50,18 @@ docker inspect --format 'running={{.State.Running}} restarting={{.State.Restarti
 
 In doctor output, compare `deployment.vllm_flags` and the API `max_model_len`. `declared_launch_profile` fingerprints the original A recipe; it is **not evidence that A is running**. The inspector reports allowlisted CLI flags, not every resolved engine default. It does not expose raw container environment variables or mounts.
 
-## B2 command: reproduce the current workload profile
+## B2 command: memory fix with a persistent container
 
-**Manual launch only after deliberately stopping the existing server. Do not run this command now while the healthy container is active.** Both profiles use the same name, API port and large model allocation.
+**Create only when the named container is absent and no other model server is running.** Both profiles use the same name, API port and large model allocation. If a retained B2 container already exists, use `docker start` below.
 
-This reproduces [`serve-lowmem.sh`](../models/qwen3.8-flash-next/serve-lowmem.sh). Prefer that script for future launches: it checks whether the named container already exists and refuses to start in that case.
+**This is the command with the startup memory fix:** `0.88` utilization, `4294967296` KV bytes (4 GiB), `131072` context and one sequence. The historical tests used `docker run -it --rm` with these model arguments. The command below changes only the container lifecycle to `-d --restart=no`, without `--rm`: it runs in the background and retains the stopped container. This lifecycle change is not a new memory optimization.
+
+This matches [`serve-lowmem.sh`](../models/qwen3.8-flash-next/serve-lowmem.sh). Prefer that script for new containers: it refuses to replace an existing container. The local `docs/last-test.txt` records a benchmark invocation, not the Docker launch, and is intentionally untracked. The [versioned run notes](benchmarks/2026-11-08-generalization-followup.md) retain the published evidence.
 
 ```bash
 mkdir -p "$HOME/.cache/huggingface" "$HOME/.cache/vllm"
 
-docker run -it --rm \
+docker run -d --restart=no \
   --name qwen38-flash-next \
   --runtime=nvidia \
   --gpus all \
@@ -82,6 +84,26 @@ docker run -it --rm \
   --tool-call-parser qwen3_xml \
   --hf-overrides '{"architectures":["Qwen4ExpForConditionalGeneration"],"model_type":"qwen4_exp"}'
 ```
+
+Create the container once, or use the equivalent launcher from the repository root:
+
+```bash
+bash models/qwen3.8-flash-next/serve-lowmem.sh
+```
+
+Then manage that same container:
+
+```bash
+docker logs --follow --tail 100 qwen38-flash-next
+# Ctrl+C here exits the log viewer; vLLM keeps running.
+
+docker stop --time 120 qwen38-flash-next
+docker start qwen38-flash-next
+docker ps -a --filter name=qwen38-flash-next
+curl -fsS --max-time 10 http://127.0.0.1:8000/health
+```
+
+Allow model loading to finish after `docker start` before checking health or running benchmarks. `--restart=no` leaves starts and stops under operator control, including after a host reboot, so another benchmark server is not started automatically. `docker start` reuses saved arguments; edits to this command require creating a new container. Use `docker logs --follow`, since Ctrl+C in `docker attach` can signal the serving process. An existing foreground `--rm` container cannot be converted in place: it must exit before creating the retained replacement. Mounted model and compilation caches persist across both lifecycles. See [Docker run semantics](https://docs.docker.com/reference/cli/docker/container/run/).
 
 ## Baseline A command: original larger-context recipe
 
@@ -125,7 +147,7 @@ The original image tag can change. For a controlled profile comparison, use the 
 | Local API | Host networking with vLLM bound to `127.0.0.1`; default API port 8000 |
 | Shared memory | `--ipc=host` uses the host IPC namespace |
 | Persistent caches | Hugging Face and vLLM caches are mounted from the standard `$HOME/.cache` directories |
-| Container lifecycle | `-it --rm`: interactive foreground process; container removed when it exits; no restart policy configured in these commands |
+| Container lifecycle | B2 now uses `-d --restart=no`: background, retained after stop, manually started; historical B2 and the original A recipe use foreground `-it --rm` |
 | Scheduler limit | `--max-num-seqs 1`; the benchmark requests are sequential |
 | Mamba SSM precision | `--mamba-ssm-cache-dtype bfloat16` explicitly selects SSM-state precision |
 | Attention KV precision | `--kv-cache-dtype` omitted; no explicit precision is established by these commands. NVFP4 weights and BF16 SSM state do not establish attention-KV precision |
