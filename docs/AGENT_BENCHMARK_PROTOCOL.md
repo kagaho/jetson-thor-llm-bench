@@ -1,6 +1,8 @@
-# Prefix-cache and coding-agent responsiveness protocol (v0.4.0 candidate)
+# Prefix-cache and coding-agent responsiveness protocol (v0.4.0)
 
 This protocol is for **single-device local inference**. It tests first-token responsiveness and optional cache evidence, **not** general coding-agent task completion or correctness. Results are private by default.
+
+Use the [prefix evidence flowchart](diagrams/08-prefix-cache-evidence.md), [changing-task sequence](diagrams/09-agent-prefix-sequence.md) and [suite-counting map](BENCHMARK_VISUAL_GUIDE.md#suite-map-and-counting-rules) to follow both protocols visually.
 
 ## Controlled workloads
 

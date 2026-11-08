@@ -1,6 +1,8 @@
 # v0.5.0: first-decision coding-agent tool routing (no execution)
 
-**Status: experimental v0.5.0 candidate; 30/30 first decisions passed on baseline A and tuned B2.** This is a **real model tool-call** test but **not** an end-to-end coding agent. It deliberately does not run model-generated shell commands, apply patches, search real files, or execute tests. Its only purpose is to assess the model's *first structured tool decision* for a small public synthetic fixture set.
+**Status: v0.5.0 protocol; 30/30 first decisions passed on baseline A and tuned B2.** This is a **real model tool-call** test but **not** an end-to-end coding agent. It deliberately does not run model-generated shell commands, apply patches, search real files, or execute tests. Its only purpose is to assess the model's *first structured tool decision* for a small public synthetic fixture set.
+
+The [six-case diagram](diagrams/20-tool-routing-cases.md) shows each expected function/argument, while the [visual suite guide](BENCHMARK_VISUAL_GUIDE.md#first-decision-tool-routing) distinguishes first-decision scoring from request completion and multi-turn outcomes.
 
 ## Why start here?
 
@@ -36,8 +38,9 @@ The server must support `tool_choice=auto` and a tool-call parser. The current b
 ## Progression to an agent benchmark
 
 1. **v0.5.0:** First tool-call selection and arguments, without execution.
-2. **Next:** Multi-turn tool observations from a deterministic fake repository simulator (no shell access); score task plans, recovery from tool errors and no-tool decisions.
-3. **Later:** Sandboxed code tasks with pinned tests and curated public fixtures. Execute untrusted code only in a hardened isolated environment—not directly on Shockwave or inside the model-serving container.
-4. **Eventually:** Real coding-agent task completion, tests passed, wall-clock time, human intervention count, and token/cost measurements under a reproducible protocol.
+2. **v0.6.0, implemented:** [Five fixed multi-turn tasks](diagrams/19-fixed-agent-test-cases.md) with deterministic tool observations, recovery and no-tool decisions.
+3. **v0.7.0, implemented:** [Six seed-varying families](diagrams/14-generalization-test-families.md) with generated paths/values, decoys and independent local oracles.
+4. **Later:** Sandboxed code tasks with pinned tests and curated public fixtures. Execute untrusted code only in a hardened isolated environment—not directly on the model-serving host or inside its inference container.
+5. **Eventually:** Real coding-agent task completion, tests passed, wall-clock time, human intervention count, and token/cost measurements under a reproducible protocol.
 
 Use [tool-routing flowchart](diagrams/10-agent-tool-evaluation.md) and [memory experiment runbook](MEMORY_AB_EXPERIMENT.md). Tool-call implementation details are from [vLLM's tool-calling documentation](https://docs.vllm.ai/en/latest/features/tool_calling/).

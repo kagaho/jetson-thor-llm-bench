@@ -12,6 +12,8 @@ Large, quantized MoE models now run on single 128 GB unified-memory devices, but
 
 ### Suites
 
+**Illustrated walkthrough:** the [visual guide to every benchmark](docs/BENCHMARK_VISUAL_GUIDE.md) explains each suite's inputs, step-by-step workflow, exact PASS gate, counting unit and result interpretation. It links the Mermaid test diagrams, published graphs and offline CI coverage map.
+
 | Suite | Measures | What it does *not* claim |
 |---|---|---|
 | `quick` | Streaming TTFT, TTFC, generation throughput, latency | A standardized coding score |
@@ -219,6 +221,7 @@ Review `git diff`, CI and the anonymized metadata before opening a PR. Don't ove
 
 ## Documentation
 
+- [Visual guide to every benchmark](docs/BENCHMARK_VISUAL_GUIDE.md) — all suites, Mermaid workflows, scoring gates, graphs and offline tests
 - [Optimization and feature status matrix](docs/OPTIMIZATION_MATRIX.md) and [Mermaid workflow diagrams](docs/diagrams/README.md)
 - [Methodology and caveats](docs/METHODOLOGY.md)
 - [Qwen3.8 Flash Next model guide](models/qwen3.8-flash-next/README.md) and [observed Shockwave baseline](models/qwen3.8-flash-next/baseline.md)
