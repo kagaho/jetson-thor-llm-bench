@@ -137,11 +137,18 @@ def score_response(response: dict[str, Any], case: Case) -> dict[str, Any]:
 def summarize(rows: list[dict[str, Any]]) -> dict[str, Any]:
     ok = sum(bool(x["ok"]) for x in rows)
     latencies = [x["elapsed_s"] for x in rows if isinstance(x.get("elapsed_s"), (float, int))]
-    groups: dict[str, dict[str, int]] = {}
+    groups: dict[str, dict[str, Any]] = {}
     for r in rows:
-        g = groups.setdefault(r["case"], {"passed": 0, "total": 0})
+        g = groups.setdefault(r["case"], {"passed": 0, "total": 0, "_rows": []})
         g["total"] += 1
         g["passed"] += bool(r["ok"])
+        g["_rows"].append(r)
+    for g in groups.values():
+        members = g.pop("_rows")
+        for field in ("elapsed_s", "prompt_tokens", "completion_tokens"):
+            vals = [r[field] for r in members
+                    if isinstance(r.get(field), (int, float)) and not isinstance(r.get(field), bool)]
+            g["median_" + field] = round(statistics.median(vals), 4) if vals else None
     return {"schema_version": 1, "passed": ok, "total": len(rows),
             "pass_rate": round(ok / len(rows), 4) if rows else None,
             "median_elapsed_s": round(statistics.median(latencies), 4) if latencies else None,
@@ -197,9 +204,19 @@ def run_live(*, model: str, base_url: str, repeats: int, results_dir: Path,
              "**No declared tools were executed.** Only structured tool calls and exact argument values were scored.", "",
              f"- Passes: **{stats['passed']}/{stats['total']}** ({stats['pass_rate']:.1%})",
              f"- Median request latency: **{stats['median_elapsed_s']} seconds**", "",
-             "| Case | Passed | Total |", "|---|---:|---:|"]
-    lines.extend(f"| `{k}` | {v['passed']} | {v['total']} |" for k, v in stats["cases"].items())
-    lines += ["", "Failures count toward the denominator. This suite does not measure ",
+             "| Case | Passed | Total | Median latency | Median prompt tokens | Median completion tokens |",
+             "|---|---:|---:|---:|---:|---:|"]
+    def show(value, unit=""):
+        return f"{value:.2f}{unit}" if isinstance(value, (int, float)) else "n/a"
+    lines.extend(
+        f"| `{k}` | {v['passed']} | {v['total']} | "
+        f"{show(v['median_elapsed_s'], 's')} | {show(v['median_prompt_tokens'])} | "
+        f"{show(v['median_completion_tokens'])} |"
+        for k, v in stats["cases"].items()
+    )
+    lines += ["", "Token counts describe request size and generation length; completion tokens may include reasoning. "
+              "Total request latency is not decode-only throughput.", "",
+              "Failures count toward the denominator. This suite does not measure ",
               "multi-step planning, real tool execution, code correctness, or task completion.", ""]
     (dest / "summary.md").write_text("\n".join(lines), encoding="utf-8")
     return dest, stats

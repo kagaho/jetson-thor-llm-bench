@@ -1,24 +1,23 @@
-# Controlled memory restart — explicit KV budgeting
+# Shockwave: observed A→B→B2 experiment
+
+This diagram now represents the **observed sequence**, not an unexecuted plan. Cache values and memory numbers are from operator-provided logs; long-term stability is unverified.
 
 ```mermaid
 flowchart TD
-    A[Existing working Docker container: do not stop yet] --> B[Capture running flags, logs, memory, benchmarks]
-    B --> C{Baseline recorded and rollback verified?}
-    C -->|No| A
-    C -->|Yes| D[Stop original Docker container]
-    D --> E[Restart unchanged baseline A: GPU utilization 0.90]
-    E --> F{A passes health, context, inference?}
-    F -->|No| G[Investigate baseline startup; no tuning]
-    F -->|Yes| H[Record exact vLLM version and available KV budget]
-    H --> I[Stop A and start candidate B: explicit measured KV cache bytes]
-    I --> J{B starts and required context fits?}
-    J -->|No| K[Rollback to documented baseline A]
-    J -->|Yes| L[Matched quick/prefix/agent/tool-routing tests]
-    L --> M{Improved reliability without regressions?}
-    M -->|No| K
-    M -->|Yes| N[Document validated optional candidate profile]
+    A[Working baseline A: auto KV 5.26 GiB, context 212992, GPU fraction 0.90] --> B[Record 30/30 tool routing and prefix tests]
+    B --> C[Manual B: KV 4 GiB, context 131072, GPU fraction 0.90]
+    C --> D{Startup check passed?}
+    D -->|No: free 109.94 GiB below 110.52 GiB| E[Stop failed candidate and retain logs]
+    E --> F[B2: KV 4 GiB, context 131072, GPU fraction 0.88]
+    F --> G{Startup and health passed?}
+    G -->|Yes| H[30/30 tool routing; 5 prefix + 5 agent pairs; 8K/32K retrieval passes]
+    H --> I[MemAvailable 2.9 GiB post tests; 1.1 GiB previous snapshot]
+    I --> J{Sustained stability and matched workloads proven?}
+    J -->|Not yet| K[Retain B2 as experimental; preserve baseline rollback]
+    J -->|After future tests| L[Consider a recommended low-memory profile]
+    G -->|No| M[Rollback using recorded baseline A recipe]
 ```
 
-**Important:** `--kv-cache-memory-bytes` does not increase physical RAM; where supported it changes how vLLM derives cache size and overrides `--gpu-memory-utilization` for that calculation. Not every version of the specialized NVIDIA Jetson container necessarily supports the same options as upstream vLLM. This flow deliberately does not provide an arbitrary cache-size value.
+**Interpretation:** a manual KV-cache size skipped cache profiling **after** startup, but the observed pinned vLLM build still evaluated the utilization-based initial free-memory gate. Changes to context, KV cache, and startup threshold mean B2 is not a single-variable A/B test.
 
-See [experiment runbook](../MEMORY_AB_EXPERIMENT.md).
+See [runbook](../MEMORY_AB_EXPERIMENT.md) and [measurements](../benchmarks/2026-11-08-shockwave-b2-vs-a.md).

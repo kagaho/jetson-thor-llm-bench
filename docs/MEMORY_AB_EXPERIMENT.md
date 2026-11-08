@@ -1,68 +1,62 @@
-# Shockwave memory/KV-cache experiment — **do not restart yet**
+# Shockwave memory A/B evaluation — baseline A and experimental B2
 
-**Goal:** Determine whether explicit KV-cache budgeting improves *startup repeatability* and memory headroom for Qwen3.8 Flash Next NVFP4 on a single Jetson AGX Thor. Keep latency, cache-hit observations, decode speed and usable context as acceptance gates. **This is an experiment plan, not a tested replacement launch command.**
+**Status as of November 8, 2026:** Candidate **B2 started successfully** with explicit 4 GiB KV cache, 131,072 maximum context and 0.88 startup utilization threshold. It passed 30/30 synthetic tool-routing cases, 5/5 prefix pairs, 5/5 synthetic agent pairs and two single-shot context retrieval probes. **Keep B2 running** for further stability testing; this is not a universal recommendation to replace high-context A.
 
-## Baseline we must preserve
+## Configurations and observed results
 
-| Parameter | Observed working baseline |
-|---|---|
-| Device | Jetson AGX Thor 128 GB unified memory, JetPack 7.2.1 / R39.2.1 |
-| Inference | `ghcr.io/nvidia-ai-iot/vllm:qwen3.8-next-jetson-thor` serving `local-inference-lab/Qwen3.8-Flash-Next-NVFP4` |
-| GPU fraction | `--gpu-memory-utilization 0.90` |
-| Configured max context | `--max-model-len 212992` (not verified at full length) |
-| Concurrency | `--max-num-seqs 1` |
-| MTP | Off, due to missing draft checkpoint shards |
-| Prefix reuse | Server cache-hit counters observed in five-pair tests; default effective flag not independently confirmed |
-| Current launch recipe | [`models/qwen3.8-flash-next/serve.sh`](../models/qwen3.8-flash-next/serve.sh) |
+| Metric | Baseline A | Tuned B2 |
+|---|---:|---:|
+| Image digest | `512bf772…e7526` | Same |
+| vLLM version | `0.28.1rc1.dev580+g385dce36b` | Same |
+| GPU utilization threshold | `0.90` | `0.88` |
+| KV memory | 5.26 GiB automatic | 4.00 GiB explicit (`4294967296` bytes) |
+| KV token capacity | 214,535 | 159,862 |
+| Maximum context | 212,992 | 131,072 |
+| Reported concurrency for max context | 1.01× | 1.22× |
+| `free -h` MemAvailable snapshot | 1.1 GiB | 3.4 GiB after start; 2.9 GiB after tests |
+| Tool routing (first decision) | 30/30 | 30/30 |
+| Median tool-routing latency | 2.9165 s | 3.1947 s |
+| Prefix repeat TTFT (median) | ~0.51 s | ~0.52 s |
+| Synthetic agent follow-up TTFT | ~0.63 s | ~0.65 s |
 
-Historical failed setting: `--gpu-memory-utilization 0.93` required **114.21 GiB** but only **112.66 GiB** was free at startup; clearing filesystem cache increased the latter only to **113.24 GiB**, still not enough. Reducing to 0.90 succeeded. See [memory issue #2](https://github.com/kagaho/jetson-thor-llm-bench/issues/2).
+These are **different capacity configurations** (GPU threshold, KV budget and context limit changed), not a clean single-variable A/B. Differences in memory snapshots may reflect different OS/runtime states and should not all be attributed to KV-cache allocation.
 
-## Key technical constraint
+## What the failed B attempt taught us
 
-In supported versions of vLLM, `--kv-cache-memory-bytes N` **replaces** the automatic KV sizing driven by `--gpu-memory-utilization`; it does **not** add memory, increase model capacity, or establish that 262,144 context tokens will fit. Model weights, CUDA graphs, other allocations and OS processes still share the physical RAM budget. A too-small explicit KV budget can fail the model's context-capacity startup check even if model loading succeeds.
+The **first** 4 GiB candidate with `--gpu-memory-utilization 0.90` failed its *initial* startup gate: free **109.94 GiB** was below required **110.52 GiB**. This is **not** an inference OOM. The observed vLLM build still evaluates this gate despite a manually specified KV cache. When B2 used utilization `0.88`, the gate passed; its logs explicitly say **`reserved 4.0 GiB memory for KV Cache as specified ... skipped memory profiling`**.
 
-The specialized NVIDIA image may have different vLLM flags or semantics. **Check support inside that exact image before attempting a replacement.** Do not assume the latest upstream documentation describes the pinned Jetson runtime.
+The B2 logs then reported **159,862** token KV capacity at max context 131,072 and successful API startup. Model loading consumed approximately **97.84 GiB** (vLLM logger figure). Its actual long-run stability and ability to fully utilize the 131K context remain unproven.
 
-References: [vLLM current engine arguments](https://docs.vllm.ai/en/latest/configuration/engine_args/) and [prefix-cache production metrics](https://docs.vllm.ai/en/stable/usage/metrics/).
+## First-decision tool routing: don't confuse more tokens with slower decoding
 
-## Phase A: record the working state without stopping Docker
+`no_tool_needed` returned a median **94 completion tokens / 4.30 s** on A versus **140 tokens / 6.44 s** on B2. `run_cache_tests` increased **58 → 73 tokens** and **2.82 → 3.59 s**. These increases in generation length are consistent with most of the extra wall time, but end-to-end response latency is **not** a pure decode-rate measurement. Other cases showed smaller differences; don't attribute them to the KV profile without matched outputs and power/clocks.
 
-From a second terminal, while the existing model serves:
+B2's context probes processed **7,992 prompt tokens / 91 completion tokens** in **9.8524 s**, and **31,652 prompt tokens / 90 completion tokens** in **25.603 s**. Both returned the required retrieval code. Their output lengths are matched, so higher *input* processing cost is a more plausible driver of the latency increase. Each context size had only one non-streaming request.
+
+See the dedicated [B2 A/B results](benchmarks/2026-11-08-shockwave-b2-vs-a.md) and [output-length confounder case study](benchmarks/2026-11-08-shockwave-b2-output-length-context.md).
+
+## Reproduce the two profiles (manual, sequential only)
+
+The original working profile is [`models/qwen3.8-flash-next/serve.sh`](../models/qwen3.8-flash-next/serve.sh) (0.90, auto KV, 212,992 context). The experimental pinned image/low-memory profile is [`serve-lowmem.sh`](../models/qwen3.8-flash-next/serve-lowmem.sh) (0.88, 4 GiB KV, 131,072 context). **Neither script is executed by the benchmark suite.** Each uses the same container name and binds the same model caches; **never launch both simultaneously**.
+
+Before any further restart, capture current Docker args, `free -h`, `/health`, benchmark reports and logs. Stop the running container explicitly, then run **one** desired profile from the repository root. If the low-memory candidate becomes unstable, stop it and restore the proven baseline profile.
 
 ```bash
-cd ~/Documents/jetson-thor-llm-bench
-python3 -m thorbench doctor --container qwen38-flash-next > results/pre-restart-doctor.json
-free -h
-sudo nvpmodel -q
-curl -fsS http://127.0.0.1:8000/health
-# Keep any raw Docker logs LOCAL: they may contain paths, prompts or credentials.
-docker logs --tail 200 qwen38-flash-next > results/pre-restart-docker.log 2>&1
+# DO NOT run these while the serving container is already alive.
+# Only after a deliberate shutdown:
+bash models/qwen3.8-flash-next/serve-lowmem.sh
+# Or rollback to the original higher-context profile:
+bash models/qwen3.8-flash-next/serve.sh
 ```
 
-Also capture current `--gpu-memory-utilization`, `--max-model-len`, model revision, container image digest, power mode and available memory. Run the `quick`, `prefix`, `agent` and tool-routing suites (same flags across A/B), then preserve their numeric summaries privately. This prevents comparing a freshly initialized candidate against a warmed baseline as if they were equivalent.
+For the observed image, `--kv-cache-memory-bytes` overrides KV sizing derived from `gpu_memory_utilization`, **but it did not eliminate the initial utilization-based free-memory check**. Do not keep reducing the threshold to bypass repeated failures, do not run page-cache drops during benchmark measurement, and do not change MTP/concurrency simultaneously.
 
-## Phase B: **later, scheduled restart** after baselines and rollback review
+## Acceptance gates before recommending B2 long term
 
-1. Confirm the original `docker run` terminal can be interrupted. If Docker was started interactively with `--rm`, **Ctrl+C generally stops and removes the container**; an explicit `docker stop qwen38-flash-next` from a second terminal is usually clearer. Confirm with `docker ps`. The Hugging Face and vLLM caches are bind-mounted in the documented recipe; verify your actual container's volumes before stopping it.
-2. Start the **same unchanged baseline** once using `bash models/qwen3.8-flash-next/serve.sh`. Verify `/health`, model registration, free memory, 8192-token inference and prefix hits. If this fails, stop and investigate startup repeatability rather than attempting tunings.
-3. Stop that reproduced baseline. For **candidate B**, introduce just `--kv-cache-memory-bytes` with a **measured budget** determined from runtime cache allocation logs, required context capacity, and safety margin. Do not use an arbitrary size or alter MTP, max-model-len, GPU fraction, quantization and concurrency in the same comparison. Test that the customized Jetson image actually recognizes the flag.
-4. Compare startup success, memory available, reported KV capacity/context, TTFT, decode throughput and cache reuse across equal prompt workloads. Record failures and OOM logs. **Do not repeatedly call `drop_caches` during timing tests** (it distorts I/O and performance).
-5. If candidate B fails or regresses, **rollback** to the known recipe: `bash models/qwen3.8-flash-next/serve.sh` after ensuring no same-named container remains.
+1. Keep 30/30 synthetic tool-routing accuracy across controlled repeated runs; document input and output tokens.
+2. Validate prefix hit **counter deltas** on an isolated endpoint and check sustained response latency; server-wide counters are not proof of request attribution without isolation.
+3. Verify all required long-context workloads with actual `prompt_tokens`, *not* just configured max context.
+4. Record power profile, clocks, available memory, GPU and model runtime allocations before/after the same workloads.
+5. Check for crashes/OOM across repeated idle/active cycles; do not confuse one successful startup with long-run stability.
 
-Do not directly use a custom startup flag until its support and KV allocation requirements are verified. If context capacity must be reduced, treat that as a **separate experiment** with a different hypothesis; it is not an apples-to-apples memory fix.
-
-## Proposed comparison table (fill only after measurements)
-
-| Metric | A: verified 0.90 baseline | B: explicit KV budget |
-|---|---|---|
-| Image digest / checkpoint revision | Record | Same as A |
-| Startup success | Record | Pending |
-| Available RAM before startup | Record | Record |
-| Peak/steady RAM | Record | Pending |
-| KV cache capacity / context | Record | Pending |
-| Prefix-hit counter behavior | Record | Pending |
-| Median TTFT/TTFC | Record | Pending |
-| Decode tok/s | Record | Pending |
-| Tool routing pass rate | Record | Pending |
-
-**Decision gate:** Keep B only if it starts reliably, stays within physical memory, preserves required context and tool behavior, and delivers a measurable benefit. Otherwise revert to A. See [workflow diagram](diagrams/11-memory-budget-restart.md).
+References: [vLLM KV-cache memory configuration](https://docs.vllm.ai/en/stable/configuration/engine_args/), [vLLM metrics](https://docs.vllm.ai/en/stable/usage/metrics/), and [historical startup-memory issue #2](https://github.com/kagaho/jetson-thor-llm-bench/issues/2).

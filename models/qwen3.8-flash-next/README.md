@@ -33,6 +33,12 @@ The original failed attempts used GPU utilization 0.93 (failed the initial free-
 
 **Do not use a `drop_caches` loop as a general model startup service.** Cache dropping was a manual experimental workaround for pressure on this particular unified-memory setup, is not guaranteed to help, and does not eliminate the need for appropriate memory budgeting.
 
+## Experimental low-memory option (B2)
+
+The [B2 launch script](serve-lowmem.sh) is an **observed, initially working** alternative to the higher-context baseline; it uses the same pinned image digest but explicit **4 GiB KV cache**, **0.88 startup-utilization threshold** and **131,072 configured context**. The engine reported **159,862 KV tokens** and passed 30/30 first-decision tool-routing cases and 8K/32K target retrieval probes. It is **not** a universally faster or more reliable profile and has less configured context capacity.
+
+Do **not** run the B2 script while the original vLLM service is active. The script refuses to start if the same-named Docker container exists. See [B2 structured profile](launch-profile-lowmem.json) and the [observed A/B runbook](../../docs/MEMORY_AB_EXPERIMENT.md). To restore baseline A after stopping B2, use [`serve.sh`](serve.sh).
+
 ## Benchmark commands
 
 From the repository root while the API is healthy:

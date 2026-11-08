@@ -1,6 +1,6 @@
 # v0.5.0: first-decision coding-agent tool routing (no execution)
 
-**Status: experimental v0.5.0 candidate.** This is a **real model tool-call** test but **not** an end-to-end coding agent. It deliberately does not run model-generated shell commands, apply patches, search real files, or execute tests. Its only purpose is to assess the model's *first structured tool decision* for a small public synthetic fixture set.
+**Status: experimental v0.5.0 candidate; 30/30 first decisions passed on baseline A and tuned B2.** This is a **real model tool-call** test but **not** an end-to-end coding agent. It deliberately does not run model-generated shell commands, apply patches, search real files, or execute tests. Its only purpose is to assess the model's *first structured tool decision* for a small public synthetic fixture set.
 
 ## Why start here?
 
@@ -29,9 +29,9 @@ python3 -m thorbench.tool_eval --runs 2
 cat "$(ls -td results/*-tool-routing | head -1)/summary.md"
 ```
 
-Six cases × two repetitions = 12 requests. `--runs 1` is a quick smoke test. Some models spend hundreds of tokens in internal reasoning before returning a tool call; the default `--max-tokens 1024` is intentional. The output includes a pass rate; do not treat a `tool_calls` response as a completed programming task.
+Six cases × two repetitions = 12 requests. `--runs 1` is a quick smoke test. Some models spend hundreds of tokens in internal reasoning before returning a tool call; the default `--max-tokens 1024` is intentional. The output includes a pass rate and per-case median prompt and completion token counts; do not treat a `tool_calls` response as a completed programming task.
 
-The server must support `tool_choice=auto` and a tool-call parser. The current baseline declares `--enable-auto-tool-choice --tool-call-parser qwen3_xml`; support still needs confirmation from the live run. Do not force `tool_choice=required` as a workaround because it would invalidate the negative control and may mask model-routing failures.
+The server must support `tool_choice=auto` and a tool-call parser. The current baseline declares `--enable-auto-tool-choice --tool-call-parser qwen3_xml`; support has now been demonstrated by 30/30 structured first decisions on each of the two observed configurations. Do not force `tool_choice=required` as a workaround because it would invalidate the negative control and may mask model-routing failures.
 
 ## Progression to an agent benchmark
 

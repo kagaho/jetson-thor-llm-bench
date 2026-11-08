@@ -4,6 +4,11 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Validated A/B2 follow-up (v0.5.0 candidate)
+- Recorded baseline A versus explicit-4-GiB B2 memory allocation, startup gate and prompt/context tradeoffs; two safe sequential launch profiles.
+- Added per-case median prompt/output token metrics to first-tool-decision benchmark summaries.
+- Added B2 A/B report and reproducible SVG graph documenting 30/30 results on both configurations; no causal speedup claimed.
+
 ### Added (v0.5.0 candidate)
 - Read-only first-decision coding-agent tool-routing benchmark with exact structured function/argument scoring, offline tests, and no tool execution.
 - Memory/KV-cache A/B restart runbook with baseline capture, physical memory constraints, and rollback gates; Mermaid decision workflows.
