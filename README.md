@@ -2,7 +2,7 @@
 
 **A minimal, reproducible, public-ready benchmark harness for local LLM/VLM inference on NVIDIA Jetson AGX Thor.** Designed around an existing vLLM OpenAI-compatible server; no dependencies beyond Python's standard library.
 
-> **Status:** v0.5.0 candidate · B2 has completed its initial functional and memory gates; longer-term stability and matched performance controls remain open. Not affiliated with NVIDIA, Qwen, or vLLM.
+> **Status:** v0.6.0 candidate · 25/25 observed completions on five *fixed synthetic* multi-turn tasks, with 67/67 offline tests; not a real-repository coding-quality benchmark. v0.5.0 is released. Not affiliated with NVIDIA, Qwen, or vLLM.
 
 ## Why this repository?
 
@@ -19,6 +19,7 @@ Large, quantized MoE models now run on single 128 GB unified-memory devices, but
 | `prefix` | Independent first/repeat pairs, optional `/metrics` cache counters, TTFT/TTFC | That faster repetition proves cache was used |
 | `agent` | Long shared repository context with changing user task, optional cache evidence | A full coding-agent correctness or tool-use benchmark |
 | `tool-routing` | Real structured function selection and argument accuracy against six synthetic fixtures | Actual code execution or multi-step agent task completion |
+| `agent-multiturn` | Five deterministic simulated repository episodes with intermediate tool observations and recovery | Executed shell commands, real code edits, or open-ended agent reliability |
 
 ## Prerequisites
 
@@ -101,6 +102,15 @@ cat "$(ls -td results/*-tool-routing | head -1)/summary.md"
 
 This uses **real model function-calling responses**, but never executes model-selected tools or shell commands. It scores six deterministic cases (including a no-tool negative control) and records timing without publishing prompts or generated arguments. See [tool-routing protocol](docs/AGENT_TOOL_EVAL.md), [decision workflow](docs/diagrams/10-agent-tool-evaluation.md), and the [memory/KV-cache A/B restart plan](docs/MEMORY_AB_EXPERIMENT.md). **The B2 experiment has now completed startup and initial benchmark gates; keep the running container active during follow-up validation.**
 
+### Multi-turn coding-agent simulator (v0.6.0 candidate)
+
+```bash
+python3 -m thorbench.agent_eval --runs 5
+cat "$(ls -td results/*-agent-multiturn | head -1)/summary.md"
+```
+
+On Shockwave's existing B2 container, the five fixed synthetic tasks completed **25/25 episodes** across five repetitions each (median whole-task latency **12.23s**). They exercise search/read, in-memory test repair/retest, missing-document recovery, a transient-error retry, and a no-tool control. The model called declared simulator tools across multiple model turns; **no model-generated code or shell commands were run and no real repository files were modified**. The evaluator's narrow deterministic scoring should not be extrapolated to open-ended software engineering. See the [25-episode benchmark report](docs/benchmarks/2026-11-08-shockwave-multiturn-25-episodes.md), [evaluation protocol](docs/AGENT_MULTI_TURN_EVAL.md), and [agent state-machine diagram](docs/diagrams/12-multi-turn-simulator.md). The current B2 vLLM container needs no restart.
+
 ### Experimental B2 low-memory profile (2026-11-08)
 
 ![Available RAM and tool-routing latency, baseline A versus B2](docs/figures/shockwave-a-b2-memory-and-tool-latency.svg)
@@ -166,7 +176,7 @@ The baseline includes a known missing MTP safetensors file and a KV-cache limita
 
 ## GitHub: real PRs, version tags, issues and releases
 
-This standalone repository maintains `main` through pull requests and release tags. Keep this v0.5.0 candidate in a feature branch until tests and review pass; release only from merged `main`. Historical releases remain unchanged.
+This standalone repository maintains `main` through pull requests and release tags. Keep the v0.6.0 candidate in a feature branch until tests and review pass; release only from merged `main`. Historical releases remain unchanged.
 
 See [step-by-step release and PR workflow](docs/RELEASING.md), [publication checklist](docs/PUBLICATION_CHECKLIST.md), and [historical 2025–2026 memory-cache issue draft](docs/issues/2025-2026-memory-cache-pressure.md).
 
