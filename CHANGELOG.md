@@ -5,6 +5,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
+- Illustrated guide to all nine benchmark suites and offline CI checks, with Mermaid workflows for streaming/reasoning, context, vision, fixed-agent tasks, tool-routing cases and report interpretation.
 - Serving-profile reference with complete A/B2 Docker commands, shared features, dated live observations and guidance to use B2 for the current sequential benchmark workload.
 - Seeded-test family and workflow diagrams, plus outcome/latency SVG charts generated from reviewed numeric-only data with historical scorer/seed attribution.
 

@@ -1,6 +1,8 @@
-# v0.6.0 candidate — multi-turn simulated-agent benchmark
+# v0.6.0 — multi-turn simulated-agent benchmark
 
 This evaluation is the next incremental step after v0.5.0's **30/30 first-decision tool-routing** probes. The model now receives tool observations, can make subsequent decisions, and is graded on reaching a **deterministic synthetic outcome**. No generated command, code, patch, test or file access runs on Shockwave.
+
+For a visual explanation of every fixed task's required trace, see the [five-task map](diagrams/19-fixed-agent-test-cases.md), the [model/tool loop](diagrams/12-multi-turn-simulator.md) and the [complete suite guide](BENCHMARK_VISUAL_GUIDE.md#fixed-multi-turn-simulated-tasks).
 
 ## Benchmark contract
 
@@ -24,7 +26,7 @@ This evaluation is the next incremental step after v0.5.0's **30/30 first-decisi
 | `repair_failing_test` | Test FAIL precedes allowed in-memory `30→60` edit, test PASS follows edit, final answer acknowledges success |
 | `missing_document_recovery` | Initial `docs/cache-v1.md` not-found, search finds current runbook, read succeeds, answer states 2 retries for HTTP 503 |
 | `transient_error_recovery` | Synthetic initial read returns `temporary_unavailable`, next read succeeds, answer reports `INC-42` |
-| `no_tool_needed` | No tools selected and a short TTFT answer mentioning time to first token |
+| `no_tool_needed` | No tools selected and a TTFT answer mentioning first-token time, in at most 500 characters |
 
 **Caveats:** These are five small, public, deterministic scenarios. The model could overfit to them. Natural-language grading remains heuristic. A 5/5 or 25/25 score is **not** a SWE-bench score, actual patch correctness, independent model reasoning validation, security certification or a real coding-agent task completion rate. The test only shows completion *in the defined simulator*.
 

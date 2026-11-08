@@ -1,5 +1,7 @@
 # Benchmark methodology
 
+For an illustrated explanation of every suite, its counting rules and exact outcome gates, start with the [benchmark visual guide](BENCHMARK_VISUAL_GUIDE.md). The [streaming timeline](diagrams/15-streaming-and-reasoning.md), [context workflow](diagrams/16-context-retrieval.md), [vision workflow](diagrams/17-vision-smoke.md) and [report interpretation](diagrams/21-results-and-evidence.md) show how observations become results.
+
 ## What we measure
 
 - `elapsed_s`: monotonic wall-clock duration for the whole HTTP request, from sending bytes until the final response.
@@ -31,7 +33,13 @@
 
 Thor has unified RAM. Avoid jumping directly to ~200K context with a ~100 GiB resident model. Start small, review `jtop`/`tegrastats`, then escalate deliberately. Do not run other models in parallel when testing near memory limits.
 
-## Repeated prompts and cache evidence (v0.4.0 candidate)
+## Aggregation and failure populations
+
+In `thorbench bench`, every recorded failure stays in the scenario pass/total count, while per-scenario timing medians use successful rows. Paired TTFT ratios require both requests to complete and usable timing values; unsuccessful pairs still contribute their request failures to scenario totals. Warmups are excluded from all recorded counts.
+
+The separate first-decision and multi-turn tool evaluators include available numeric timings from failed cases/episodes in their medians. The seeded evaluator also reports interpolated p90. Consequently, compare timing populations as well as suite and protocol identities. Multi-turn prompt usage includes repeated conversation history, not unique context tokens. See the [report workflow](diagrams/21-results-and-evidence.md).
+
+## Repeated prompts and cache evidence (v0.4.0 protocol)
 
 For first/repeat or synthetic agent-like probes, `--runs` counts **pairs** and `--warmup 0` is required. Each pair uses a fresh random marker, and requests run sequentially. The benchmark may scrape server-wide `vllm:prefix_cache_hits_total` and `vllm:prefix_cache_queries_total` around each request. If the server does not expose the counters, record the status as *unavailable*, not zero. Even with a positive delta, other traffic to the engine prevents per-request attribution. A latency improvement alone is not a confirmed prefix-cache hit.
 

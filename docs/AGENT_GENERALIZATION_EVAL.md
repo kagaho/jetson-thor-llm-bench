@@ -4,6 +4,8 @@
 
 For diagrams of the test families and execution workflow, outcome counts and latency graphs, see the [visual results guide](AGENT_GENERALIZATION_RESULTS.md). The charts retain the measured scorer version separately from the released scorer.
 
+For comparison with every other suite, their different no-tool gates and aggregation rules, use the [complete benchmark visual guide](BENCHMARK_VISUAL_GUIDE.md).
+
 ## What changes between episodes?
 
 The deterministic fixture generator derives a stable SHA-256 sub-seed from `base_seed`, task-family name, and repetition index. The base seed is random by default (63-bit) and printed and recorded for reproduction of **the generated fixtures**; stochastic model outputs and timing may still differ between reruns. There is no nondeterministic dependence on Python's randomized `hash()`.

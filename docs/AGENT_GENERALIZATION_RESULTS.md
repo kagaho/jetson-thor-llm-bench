@@ -1,5 +1,7 @@
 # Seeded simulated-agent results and visual guide
 
+For illustrated workflows covering all nine live suites and the offline harness tests, start with the [complete benchmark visual guide](BENCHMARK_VISUAL_GUIDE.md). This page focuses on the recorded seeded run.
+
 The latest recorded full run completed **25/30 episodes (83.3%)** with **scorer 0.7.2**, protocol 1, seed `3628200930879258838`, starting at commit `de44842`. Five variants of each of six public task families were included. All five failures were `excessive_verbosity` on the no-tool control; no request errors occurred.
 
 Package v0.7.0 includes scorer **0.7.3**, whose numeric correction is validated offline. These charts preserve the observed 0.7.2 score; no full live-suite score is claimed here for 0.7.3.
