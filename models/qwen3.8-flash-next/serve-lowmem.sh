@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Reproduce the November 8, 2026 B2 low-memory configuration.
+# Reproduce the November 8, 2026 B2 memory settings in a persistent container.
 # Do NOT run alongside the existing qwen38-flash-next container.
 set -euo pipefail
 
 NAME="qwen38-flash-next"
 if docker container inspect "$NAME" >/dev/null 2>&1; then
-  echo "Container $NAME already exists. Stop/remove it deliberately before starting this profile." >&2
+  echo "Container $NAME already exists. Use docker start $NAME to resume it, or inspect it before creating a replacement." >&2
   exit 2
 fi
 
@@ -14,7 +14,7 @@ IMAGE="ghcr.io/nvidia-ai-iot/vllm@sha256:512bf772c7ef221df1a66ab9c95546d77daeba6
 MODEL="local-inference-lab/Qwen3.8-Flash-Next-NVFP4"
 mkdir -p "$HOME/.cache/huggingface" "$HOME/.cache/vllm"
 
-exec docker run -it --rm \
+exec docker run -d --restart=no \
   --name "$NAME" \
   --runtime=nvidia \
   --gpus all \

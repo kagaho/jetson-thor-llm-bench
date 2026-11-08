@@ -5,9 +5,13 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
+- Pinned FP8-hybrid second benchmark plan and resumable Hugging Face base/delta downloader with manifest and checksum verification; paired measurements remain pending.
 - Illustrated guide to all nine benchmark suites and offline CI checks, with Mermaid workflows for streaming/reasoning, context, vision, fixed-agent tasks, tool-routing cases and report interpretation.
 - Serving-profile reference with complete A/B2 Docker commands, shared features, dated live observations and guidance to use B2 for the current sequential benchmark workload.
 - Seeded-test family and workflow diagrams, plus outcome/latency SVG charts generated from reviewed numeric-only data with historical scorer/seed attribution.
+
+### Changed
+- B2 launcher now runs detached and retains its container for manual start/stop, preserving its verified `0.88` utilization, 4 GiB KV cache and 131,072-token context settings.
 
 ## [0.7.0] — 2026-11-08
 
@@ -59,7 +63,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Optional `doctor --container` / `bench --container` observation of whitelisted running vLLM flags, without storing raw Docker inspect output or credentials.
 - Paired synthetic `prefix` benchmark with cached prompt-token reporting when returned by the serving API.
 - Feature matrix and six Mermaid diagrams explaining vLLM optimization modes, memory budgeting, tool calling and agentic deployment trade-offs.
-- Source-attributed comparison of Marco Pastorio's FP8-hybrid MTP performance and Ryan Johns's real agent workflow, explicitly not an apples-to-apples ranking.
+- Source-attributed comparison of external FP8-hybrid MTP performance and a coding-agent field report, explicitly not an apples-to-apples ranking.
 
 
 ## [0.2.0] — 2026-11-07

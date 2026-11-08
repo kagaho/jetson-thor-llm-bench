@@ -187,9 +187,9 @@ Use your own test image. It is sent in memory as a data URI and is **not persist
 
 The initial Qwen3.8 Flash Next NVFP4 evaluation demonstrates working local serving, structured tool routing and completion of defined simulated workflows on Jetson AGX Thor. First-decision routing passed **30/30** on each recorded A/B2 profile, and the fixed multi-turn suite passed **25/25**, repeating five public fixtures. The later seeded run completed **25/30 (83.3%)** under scorer **0.7.2**; all five failures were no-tool answers exceeding the brevity limit. These are separate protocols, documented in the [visual guide](docs/BENCHMARK_VISUAL_GUIDE.md) and [versioned measurements](docs/benchmarks/2026-11-08-generalization-followup.md).
 
-This is enough to move to another model using the same harness. The evidence supports the tested sequential workloads and their specific success criteria; it does not establish held-out coding correctness, a model ranking, full configured-context reliability or sustained-load stability. B2 remains the preferred profile for the current workload, with its [documented limits](docs/SERVING_PROFILES.md).
+This is enough to evaluate another checkpoint/runtime configuration using the same harness. The evidence supports the tested sequential workloads and their specific success criteria; it does not establish held-out coding correctness, a model ranking, full configured-context reliability or sustained-load stability. B2 remains the preferred profile for the current workload, with its [documented limits](docs/SERVING_PROFILES.md).
 
-**Next model: selection pending.** Before publishing a cross-model comparison, establish a reference run with current scorer **0.7.3**, then apply the same scorer, task seeds, prompts, request budgets and measurement definitions to the selected model. Record checkpoint revision, quantization, runtime image and serving conditions, and include failures. The historical 25/30 remains a scorer 0.7.2 result; a new comparison must not relabel it.
+**Next benchmark: Qwen3.8 Flash Next NVFP4 + FP8 hybrid**, using the forum's custom Thor runtime and pinned Hugging Face base/delta. This compares a second checkpoint/runtime configuration of the same model family. The [reproduction and comparison plan](docs/FP8_HYBRID_BENCHMARK_PLAN.md) separates the repository's paired tests from forum-throughput replication; no local hybrid result is available yet. Before publishing comparisons, establish a reference run with current scorer **0.7.3**, then apply the same scorer, task seeds, prompts, request budgets and measurement definitions to the hybrid. Record checkpoint revisions, quantization, runtime image and serving conditions, and include failures. The historical 25/30 remains a scorer 0.7.2 result; a new comparison must not relabel it.
 
 ## Outputs
 
@@ -242,6 +242,7 @@ Review `git diff`, CI and the anonymized metadata before opening a PR. Don't ove
 - [Methodology and caveats](docs/METHODOLOGY.md)
 - [Qwen3.8 Flash Next model guide](models/qwen3.8-flash-next/README.md) and [observed Shockwave baseline](models/qwen3.8-flash-next/baseline.md)
 - [Public benchmark comparisons and standardized quality roadmap](docs/PUBLIC_BENCHMARKS.md)
+- [FP8-hybrid second benchmark plan](docs/FP8_HYBRID_BENCHMARK_PLAN.md) — pinned artifacts, reproducible download, paired tests and trade-offs
 - [Releases, PRs and issue publication](docs/RELEASING.md)
 - [Published Shockwave prefix case study](docs/benchmarks/2026-11-07-shockwave-prefix.md) — measured data, illustrated, limitations
 - [Five-pair prefix and agent benchmark](docs/benchmarks/2026-11-07-shockwave-five-pair-prefix-agent.md) — measured TTFT, total latency, cache-counter evidence, graph

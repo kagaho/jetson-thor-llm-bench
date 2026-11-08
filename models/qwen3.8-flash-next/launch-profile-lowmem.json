@@ -9,6 +9,12 @@
   "nvpmodel": "120W",
   "served_model_name": "Qwen3.8-Flash-Next",
   "launch_script": "models/qwen3.8-flash-next/serve-lowmem.sh",
+  "launch_script_lifecycle": {
+    "detached": true,
+    "remove_when_stopped": false,
+    "restart_policy": "no",
+    "note": "Current launcher lifecycle; historical B2 measurements used foreground --rm with the same model and memory arguments."
+  },
   "parameters": {
     "gpu_memory_utilization": 0.88,
     "kv_cache_memory_bytes": 4294967296,
