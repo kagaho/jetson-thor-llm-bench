@@ -17,10 +17,16 @@ The deterministic fixture generator derives a stable SHA-256 sub-seed from `base
 |---|---|---|
 | `symbol_origin` | Search or list discovers target; read active policy | Exact active path and integer |
 | `repair_regression` | Inspect active source and observe test FAIL before allowlisted edit; then test PASS | Acknowledge pass/fix |
-| `moved_runbook` | Old doc missing → search finds active → read active doc | 503 and current retry limit |
+| `moved_runbook` | Discover active doc via list or search → read it (no need to open known-broken old link) | Active path, HTTP 503, and current retry limit |
 | `transient_read` | One or two retryable read failures → successful read | Exact incident identifier |
 | `environment_disambiguation` | Read both staging and production | Production path, value, and environment |
-| `no_tool_needed` | No tools | Short TTFT versus end-to-end description |
+| `no_tool_needed` | No tools | Correct TTFT versus end-to-end description in ≤700 characters; otherwise `excessive_verbosity` |
+
+## v0.7.1 scoring correction (from the original v0.7 branch)
+
+The original runbook scorer wrongly required attempting the explicitly broken old URL and searching before accepting the active document. The corrected scorer accepts **either listing or searching** that discovers the active path, followed by a successful read and an exact answer. It still rejects archived-only evidence, unverified answers, and incorrect retry values. No tool-simulator, model-server, or fixture changes were made.
+
+The no-tool control still requires a brief answer (≤700 characters). Responses that otherwise satisfy the no-tool and terminology requirements but exceed that cap now receive `excessive_verbosity` rather than the generic `incomplete_or_ungrounded`. Historical v0.7.0 results remain unchanged; distinguish new v0.7.1 scoring from prior scores in reports.
 
 ## Safety and request protocol
 
