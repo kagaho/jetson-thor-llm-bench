@@ -10,6 +10,14 @@
 
 Large, quantized MoE models now run on single 128 GB unified-memory devices, but "it boots" is different from measuring **first-token latency, visible-answer latency, sustained decoding, reasoning overhead and context reliability**. This repository records those dimensions without committing private prompts, device identifiers, or model files.
 
+### Proposal
+
+We combine nine complementary suites to measure local-model responsiveness, context reuse, and simulated agent behavior through reproducible evidence.
+
+![Animated suite map covering model response, context reuse, agent simulation, offline checks, and reviewable evidence.](docs/figures/benchmark-proposal.gif)
+
+[View the still diagram.](docs/figures/benchmark-proposal.png)
+
 ### Suites
 
 **Illustrated walkthrough:** the [visual guide to every benchmark](docs/BENCHMARK_VISUAL_GUIDE.md) explains each suite's inputs, step-by-step workflow, exact PASS gate, counting unit and result interpretation. It links the Mermaid test diagrams, published graphs and offline CI coverage map.
