@@ -2,9 +2,9 @@
 
 **A minimal, reproducible, public-ready benchmark harness for local LLM/VLM inference on NVIDIA Jetson AGX Thor.** Designed around an existing vLLM OpenAI-compatible server; no dependencies beyond Python's standard library.
 
-> **Status:** v0.7.0 development candidate; v0.6.0 is released. These synthetic benchmarks do not establish real-repository coding quality. Not affiliated with NVIDIA, Qwen, or vLLM.
+> **Status:** v0.7.0. These synthetic benchmarks do not establish real-repository coding quality. Not affiliated with NVIDIA, Qwen, or vLLM.
 
-**Release versus scorer versions:** the published GitHub release is [v0.6.0](https://github.com/kagaho/jetson-thor-llm-bench/releases/tag/v0.6.0). The v0.7 package is still under development. References to scorer revisions `0.7.1` and later identify evaluation behavior on feature branches; they do not announce package releases or GitHub tags. See the [generalization scoring history](docs/AGENT_GENERALIZATION_EVAL.md) and [release workflow](docs/RELEASING.md).
+**Release versus scorer versions:** package [v0.7.0](https://github.com/kagaho/jetson-thor-llm-bench/releases/tag/v0.7.0) includes generalization scorer `0.7.3` and protocol `1`. Scorer revisions `0.7.1` and later identify evaluation behavior independently of package releases and GitHub tags. See the [generalization scoring history](docs/AGENT_GENERALIZATION_EVAL.md) and [release workflow](docs/RELEASING.md).
 
 ## Why this repository?
 
@@ -105,7 +105,7 @@ cat "$(ls -td results/*-tool-routing | head -1)/summary.md"
 
 This uses **real model function-calling responses**, but never executes model-selected tools or shell commands. It scores six deterministic cases (including a no-tool negative control) and records timing without publishing prompts or generated arguments. See [tool-routing protocol](docs/AGENT_TOOL_EVAL.md), [decision workflow](docs/diagrams/10-agent-tool-evaluation.md), and the [memory/KV-cache A/B restart plan](docs/MEMORY_AB_EXPERIMENT.md). **The B2 experiment has now completed startup and initial benchmark gates; keep the running container active during follow-up validation.**
 
-### Multi-turn coding-agent simulator (v0.6.0 candidate)
+### Multi-turn coding-agent simulator (v0.6.0)
 
 ```bash
 python3 -m thorbench.agent_eval --runs 5
@@ -124,10 +124,10 @@ Use the [A/B benchmark case study](docs/benchmarks/2026-11-08-shockwave-b2-vs-a.
 
 ### v0.7.0: Seed-varying simulated-agent generalization (no restart)
 
-The v0.6.0 benchmark completed 25/25 **repetitions of five fixed public tasks**, not 25 unique coding problems. The v0.7.0 candidate generates **six task families with fresh synthetic paths, values, distractors and error patterns** for each seeded episode; it checks ordered tool observations, final-answer facts, and in-memory fixture state. It still does **not** execute code, run actual tests or modify the host repository.
+The v0.6.0 benchmark completed 25/25 **repetitions of five fixed public tasks**, not 25 unique coding problems. The v0.7.0 benchmark generates **six task families with fresh synthetic paths, values, distractors and error patterns** for each seeded episode; it checks ordered tool observations, final-answer facts, and in-memory fixture state. It still does **not** execute code, run actual tests or modify the host repository.
 
 ```bash
-# After checking out the v0.7 feature branch:
+# From the v0.7.0 checkout:
 python3 -m unittest discover -s tests -v
 python3 -m thorbench.generalize_eval --runs 1
 cat "$(ls -td results/*-agent-generalization | head -1)/summary.md"
@@ -196,7 +196,7 @@ The baseline includes a known missing MTP safetensors file and a KV-cache limita
 
 ## GitHub: real PRs, version tags, issues and releases
 
-This standalone repository maintains `main` through pull requests and release tags. Keep the v0.6.0 candidate in a feature branch until tests and review pass; release only from merged `main`. Historical releases remain unchanged.
+This standalone repository maintains `main` through pull requests and release tags. Develop changes on feature branches and release only from reviewed, merged `main`. Historical releases remain unchanged.
 
 See [step-by-step release and PR workflow](docs/RELEASING.md), [publication checklist](docs/PUBLICATION_CHECKLIST.md), and [historical 2025–2026 memory-cache issue draft](docs/issues/2025-2026-memory-cache-pressure.md).
 
