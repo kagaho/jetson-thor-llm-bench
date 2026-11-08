@@ -162,6 +162,61 @@ class EpisodeTests(unittest.TestCase):
             reply(text="PASS on rerun after in-memory fix.")])
         self.assertTrue(run_episode(case, model)["ok"])
 
+    def test_moved_runbook_direct_discovery_needs_no_broken_link_read(self):
+        case = self._case("moved_runbook")
+        model = Scripted([
+            reply(call("list_files", {"directory": "."})),
+            reply(call("read_file", {"path": case.target})),
+            reply(text=f"Active runbook: {case.target}. HTTP 503: {case.expected_value} retries."),
+        ])
+        result = run_episode(case, model)
+        self.assertTrue(result["ok"], result)
+        self.assertEqual(result["tool_errors"], 0)
+
+    def test_moved_runbook_search_can_discover_active_file_directly(self):
+        case = self._case("moved_runbook")
+        model = Scripted([
+            reply(call("search_repository", {"query": "HTTP 503"})),
+            reply(call("read_file", {"path": case.target})),
+            reply(text=f"Active runbook: {case.target}. HTTP 503: {case.expected_value} retries."),
+        ])
+        self.assertTrue(run_episode(case, model)["ok"])
+
+    def test_moved_runbook_wrong_retry_limit_fails(self):
+        case = self._case("moved_runbook")
+        model = Scripted([
+            reply(call("list_files", {"directory": "."})),
+            reply(call("read_file", {"path": case.target})),
+            reply(text=f"Active runbook: {case.target}. HTTP 503: {case.expected_value + 1} retries."),
+        ])
+        self.assertFalse(run_episode(case, model)["ok"])
+
+    def test_moved_runbook_archive_only_and_undiscovered_active_fail(self):
+        case = self._case("moved_runbook")
+        answer = f"Active runbook: {case.target}. HTTP 503: {case.expected_value} retries."
+        archive_only = Scripted([
+            reply(call("list_files", {"directory": "."})),
+            reply(call("read_file", {"path": case.secondary})),
+            reply(text=answer),
+        ])
+        undiscovered = Scripted([
+            reply(call("read_file", {"path": case.target})),
+            reply(text=answer),
+        ])
+        self.assertFalse(run_episode(case, archive_only)["ok"])
+        self.assertFalse(run_episode(case, undiscovered)["ok"])
+
+    def test_no_tool_excessive_verbosity_has_distinct_reason(self):
+        case = self._case("no_tool_needed")
+        answer = ("TTFT is time to first token; end-to-end task latency covers total work. "
+                  + "Additional explanation. " * 40)
+        self.assertGreater(len(answer), 700)
+        self.assertEqual(grade(case, InMemoryRepo(case), answer),
+                         (False, "excessive_verbosity"))
+        self.assertEqual(grade(case, InMemoryRepo(case),
+                               "TTFT is time to first token; end-to-end task latency is total time."),
+                         (True, "completed"))
+
     def test_missing_doc_must_recover(self):
         case = generate("moved_runbook", episode_seed(876, "moved_runbook", 1))
         model = Scripted([reply(call("read_file", {"path": case.old_path})),
