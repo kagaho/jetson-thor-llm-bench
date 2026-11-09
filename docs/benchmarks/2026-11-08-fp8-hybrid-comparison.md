@@ -128,7 +128,80 @@ flowchart TD
 
 ## Decision and reproduction
 
-H2 supports a faster-response trial on the tested sequential workload, with a larger build/provenance burden and additional seeded workflow failures. Keep B2 available as a retained alternative. The next evaluation priority is enforcing concise answers and the explicit fail-before-edit workflow through separately versioned experiments, followed by held-out coding-quality and sustained-load evaluations. These measurements support neither a universal model-quality ranking nor production reliability certification.
+### Agentic-task recommendation
+
+**Our provisional choice is B2 for unattended tasks that require strict verification order, and H2 for interactive work with human review where response speed matters.** This is an interpretation of the recorded failure costs, not a measured production-reliability ranking. Both deployments selected tools correctly in the routing suite and completed the fixed tool-using workflows. The recommendation turns on the additional seeded repair omissions, not an assumption that faster generation is less reliable.
+
+| Intended use | Provisional choice | Evidence and condition |
+|---|---|---|
+| Unattended repair with an explicit reproduce-before-edit requirement | B2 as the initial reference | Seeded repair evidence passed 5/5 on B2 and 2/5 on H2. Real-repository validation is still needed before deployment. |
+| Interactive coding or exploration with human review | H2 for a faster-response trial | C1 throughput was 1.70× B2 and measured response/task medians were lower; generated-code correctness was not tested. |
+| An agent whose trusted runner enforces verification order | H2 is a candidate to evaluate alongside B2 | Such gates could address the observed omission, but a guarded comparison has not been run. Their latency, retries and intervention costs must be measured. |
+| A general claim about the better coding agent | Undecided | These public synthetic fixtures do not measure held-out coding correctness or sustained autonomous operation. |
+
+Keep B2 available as a retained alternative. H2's successful smaller-memory profile, custom build dependencies and H1's aborted startup are also part of the operational choice. One successful restart is a finite check, not evidence of unattended uptime over days.
+
+### Why the fixed multi-turn total favors H2
+
+The fixed suite repeats five public fixtures five times. Four fixtures use tools; the fifth asks for a brief answer without tools. Its 25/25 versus 20/25 headline does not mean H2 completed five additional tool workflows:
+
+| Fixed-suite component | B2 | H2 |
+|---|---:|---:|
+| Four tool-using fixtures, five repetitions each | 20/20 | 20/20 |
+| No-tool answer gate | 0/5 | 5/5 |
+| **Recorded total** | **20/25** | **25/25** |
+
+H2's entire score advantage is in the no-tool case. B2's saved verdict is the broad `task_incomplete_or_ungrounded` category. The separate 725-character diagnostic demonstrates a brevity violation against the 500-character limit; raw answer text was not retained for the five measured episodes. This supports a short-answer-compliance finding in this fixture, without attributing every original failure to an identical unseen answer or claiming better tool execution.
+
+### Why the seeded total favors B2
+
+The seeded suite is a separate multi-turn protocol. It generates five variants of each of six public task families using the same saved seed for both deployments; paths, values, decoys and recovery conditions can vary. Both suites include a one-turn no-tool control, so neither total consists entirely of multi-turn tool episodes.
+
+| Seeded family | B2 | H2 |
+|---|---:|---:|
+| Symbol origin | 5/5 | 5/5 |
+| Repair regression | 5/5 | 2/5 |
+| Moved runbook | 5/5 | 5/5 |
+| Transient read recovery | 5/5 | 5/5 |
+| Environment disambiguation | 5/5 | 5/5 |
+| No-tool answer gate | 0/5 | 0/5 |
+| **Recorded total** | **25/30** | **22/30** |
+
+H2's three additional failures are concentrated in one family. The required repair evidence includes reading the relevant source and observing a failing simulated test before editing, followed by a passing simulated test. Reading the source and observing the initial failure may occur in either order. In repetitions 1, 2 and 4, H2 performed the edit and obtained a post-edit pass without recording the initial failing test.
+
+```mermaid
+flowchart LR
+    subgraph Required[Required repair evidence]
+        direction TB
+        A["Read source and observe failing simulated test<br/>Either order"] --> B[Edit in-memory fixture]
+        B --> C[Observe passing simulated test]
+        C --> D[Grounded final report]
+    end
+    subgraph Observed[Three additional H2 failures]
+        direction TB
+        E[Read fixture files] --> F[Edit in-memory fixture]
+        F --> G[Observe passing simulated test]
+        G --> H[Fail workflow gate: pre-edit failure evidence absent]
+    end
+```
+
+The post-edit passes matter: the experiment did not show three real programs failing compilation, and it did not show that H2 could not make the simulated edit. It showed that H2 omitted a required verification step. For tasks that explicitly require reproducing a regression before editing, that omission is relevant to an unattended workflow. Other task types need their own evidence requirements.
+
+Do not pool the fixed and seeded totals into a single agentic score. They use different protocols, repeated fixtures and success criteria. A brevity violation and a missing verification step need not have the same operational cost. Five variants in a family are a small sample, not five independent real-world projects, and the difference does not establish a statistically reliable general ranking.
+
+### Next controlled study: agents with externally enforced verification
+
+The speed result makes H2 worth testing with a trusted runner that owns the completion gates. **This is proposed work, not an implemented guard or an additional measured result.** Apply the same runner and rules to B2 and H2:
+
+1. Freeze both serving profiles and artifact revisions. Pre-register task selection, fresh seeds, repetitions, output/turn budgets, retry limits, warmup rules and scoring before either deployment runs. Keep existing recorded outcomes unchanged and version the new protocol separately.
+2. For repair tasks requiring reproduction, require a task-relevant failing test and source evidence associated with the pre-edit fixture before permitting an edit. Distinguish an expected test failure from an unavailable toolchain or infrastructure error. After an edit, require the relevant passing tests and protected acceptance checks; the model's assertion alone cannot complete the task.
+3. Record attempted premature edits, guard rejections, retries, timeouts and human interventions. A runner that blocks an omission has intervened; report that intervention rather than presenting the resulting pass as unassisted model compliance. Give both deployments identical gates and budgets, and retain every failure in its denominator.
+4. Measure successful task completion and time to an accepted result, alongside token counts, tool calls, total attempt time and resource use. Account for failed attempts and retries. Do not equate a lower median over episodes that skipped work with a faster correctly completed task.
+5. Extend beyond public synthetic templates to held-out tasks in isolated disposable repository fixtures, with real builds/tests and protected checks that cannot be weakened by the agent. Evaluate sustained operation separately. Neither real-code quality nor guarded unattended reliability has been established by the current run.
+
+If H2 retains its speed advantage with comparable accepted-task outcomes and an acceptable intervention cost, it would support choosing H2 for that guarded agent system. If verification omissions continue to consume budgets or cause unacceptable failures, B2 remains the stronger workflow-compliance reference for that requirement. The present data cannot decide that future comparison.
+
+### Reproduction and operating references
 
 Use the [H2 model/build guide](../../models/qwen3.8-flash-next-fp8-hybrid/README.md), [B2 serving command](../SERVING_PROFILES.md#b2-command-memory-fix-with-a-persistent-container), [frozen comparison protocol](../FP8_HYBRID_BENCHMARK_PLAN.md) and [all-suite visual guide](../BENCHMARK_VISUAL_GUIDE.md). H2 serves `qwen3.8-flash-next` at `http://127.0.0.1:8050/v1`. Both containers are retained; start only one model server at a time.
 
