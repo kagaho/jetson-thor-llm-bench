@@ -1,6 +1,8 @@
 # Qwen3.8 Flash Next serving profiles
 
-**Operational choice, November 8, 2026:** keep the healthy **B2** container running for the current sequential benchmarks. Its 131,072-token context is sufficient for those tasks. B2 is the preferred profile for this workload; its speed, quality and long-term stability have not been established as superior to A.
+**A/B2 selection, November 8, 2026:** **B2** is the preferred NVIDIA-image profile for the recorded sequential benchmarks. Its 131,072-token context is sufficient for those tasks; its speed, quality and long-term stability have not been established as superior to A.
+
+**Later follow-up:** the separate [H2 FP8-hybrid comparison](benchmarks/2026-11-08-fp8-hybrid-comparison.md) completed with faster C1 throughput and mixed workflow outcomes. H2 is the experimental server on port 8050; B2 is retained as a stopped alternative. This page covers the NVIDIA A/B2 recipes, and its B2 live observation below predates that comparison. Inspect current state before starting either server; run only one large model deployment at a time.
 
 The often-copied `0.90` / `212992` command is **baseline A**. The latest live inspection matched **B2**, with `0.88` utilization, an explicit 4 GiB KV cache and `131072` context. A checked-in recipe describes a launch configuration; inspect the running container before deciding which profile is active.
 

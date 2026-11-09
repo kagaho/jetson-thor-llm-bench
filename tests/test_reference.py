@@ -15,6 +15,14 @@ class ReferenceTests(unittest.TestCase):
         self.assertEqual(model["native_context_tokens"], 262144)
         self.assertIsNone(model_metadata("unknown-model"))
 
+    def test_hybrid_alias_preserves_base_and_delta_identity(self):
+        baseline = model_metadata("Qwen3.8-Flash-Next")
+        hybrid = model_metadata("qwen3.8-flash-next")
+        self.assertNotEqual(baseline["checkpoint_repo"], hybrid["checkpoint_repo"])
+        self.assertEqual(hybrid["base_checkpoint_repo"], "RadixArk/Qwen3.8-Flash-Next-NVFP4")
+        self.assertEqual(hybrid["checkpoint_revision"], hybrid["delta_revision"])
+        self.assertIsNone(model_metadata("RadixArk/Qwen3.8-Flash-Next-NVFP4"))
+
     def test_references_label_protocol_mismatch(self):
         result = list_references()
         self.assertIn("46.7", result)
