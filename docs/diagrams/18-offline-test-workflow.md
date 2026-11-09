@@ -19,6 +19,8 @@ flowchart TD
 
 The documented baseline at `44d1f0c` has **99 passing Python test methods**, with additional subtests inside some methods. This is an implementation check count, not an LLM completion score. The package declares Python 3.10+ support; the current GitHub workflow exercises Python 3.12 rather than a complete supported-version matrix.
 
+The paired-deployment follow-up has **107 passing methods**, adding comparison preflight/output-preservation gates, export denominator/seed checks and distinct base/delta provenance. The earlier count remains attributed to its original commit.
+
 | Coverage | Existing test modules | What is verified |
 |---|---|---|
 | HTTP and SSE | `test_client.py`, `test_cli_integration.py` | Stream parsing, reasoning/content timing, missing usage, full CLI/report paths against fake local APIs |
@@ -30,6 +32,7 @@ The documented baseline at `44d1f0c` has **99 passing Python test methods**, wit
 | Serving provenance | `test_deployment.py`, `test_model_layout.py`, `test_v05_memory.py` | Sanitized/mocked Docker inspection, public profiles, launch-script declarations and historical memory chart |
 | Reports and public evidence | `test_report.py`, `test_case_study.py`, `test_generalization_visuals.py` | Failure denominators, numeric figure provenance, historical scorer labels and exclusion of raw content |
 | Reference/version declarations | `test_reference.py` | Public-source caveats, model catalog and declared package version |
+| Paired deployment integrity | `test_deployment_comparison.py`, `test_deployment_export.py` | Health gating, private output paths, no overwrites, complete denominators, matching seeds and saved pass counts |
 
 No model weights or GPU inference are required. Fake HTTP servers used by integration tests run locally; tests do not benchmark Qwen. Simulator methods named `run_tests` never invoke this real developer test suite. The optional Matplotlib chart renderer is not imported or required by offline tests.
 

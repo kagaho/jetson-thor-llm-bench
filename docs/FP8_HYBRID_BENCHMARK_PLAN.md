@@ -1,6 +1,18 @@
 # Second benchmark: Qwen3.8 Flash Next FP8 hybrid
 
-**Status: selected for the next benchmark; no local inference results yet.** Compare the current NVIDIA-image NVFP4 deployment, using the [memory-fixed B2 command](SERVING_PROFILES.md#b2-command-memory-fix-with-a-persistent-container), against the forum's FP8-hybrid deployment. This is a second checkpoint/runtime configuration of the same model family. Any observed difference initially belongs to the complete deployment, not to FP8 quantization alone.
+**Status: paired B2/H2 measurements complete; original H1 preflight aborted.** The [comparison report](benchmarks/2026-11-08-fp8-hybrid-comparison.md) records all nine suites and the separately pinned forum C1 test: **24.22 / 41.16 tok/s** for B2/H2, with mixed workflow outcomes. H1 never reached API readiness, so it has no scored-suite or throughput result. This is a second checkpoint/runtime configuration of the same model family. Any observed difference belongs initially to the complete deployment, not to FP8 quantization alone.
+
+### Local preflight profiles
+
+| Profile | GPU budget | KV allocation | Context / sequences | Observed status |
+|---|---|---|---|---|
+| B2 reference | `0.88` | Explicit 4 GiB | `131072` / 1 | Nine suites and two-pass C1 complete |
+| H1: pinned recipe defaults | `0.90` | Automatic; startup allocated 27.31 GiB | `262144` / 3 | Aborted before API readiness; no hybrid benchmark requests sent |
+| H2: measured conservative profile | `0.88` | Explicit 4 GiB | `131072` / 1 | One planned restart and paired measurements complete; MTP 3 and custom kernels retained |
+
+H1 loaded target/MTP weights and reported 76.75 GiB model memory, selected the expected FP8/GDN kernels and allocated KV, then stopped making visible startup progress. GPU status tools and the display subsequently blocked in the driver; the kernel recorded interrupt warnings and blocked tasks. Stopping the retained container restored GPU-query responsiveness and released memory. The container's OOM flag was false; its exit 137 followed the deliberate stop timeout. A driver allocation error at cleanup does not establish the initial cause. This is an aborted operational preflight, not a measured 0 tok/s result or proof that the recipe cannot work elsewhere.
+
+H2 matches B2's memory/context/scheduler limits and initially used fresh runtime caches. It is an adaptation, not an exact replication of the forum serving defaults. GPU probes guarded preflight and stopped before timed suite measurement. H2 reached readiness, passed one planned stop/start cycle, and completed the protocol. Use the [H2 build and launch guide](../models/qwen3.8-flash-next-fp8-hybrid/README.md) and [structured profile](../models/qwen3.8-flash-next-fp8-hybrid/launch-profile.json); retain H1's unsuccessful preflight in any account of the experiment.
 
 ## Reproduction target
 
@@ -41,6 +53,22 @@ docker inspect --format 'running={{.State.Running}} exit={{.State.ExitCode}}' qw
 An exit code of zero after termination and the final verification message establish staging completion. If interrupted or failed, inspect logs and then use `docker start qwen38-fp8-hybrid-download` to resume cached downloads. The delta staging directory is `$HOME/.cache/thorbench-fp8-hybrid/deltas/pastoriomarco--Qwen3.8-Flash-Next-NVFP4-FP8-Hybrid-Delta/358162ffaaeb4372c79843d9cd1f67d3654593da`. Keep weights, raw logs and caches out of Git.
 
 ## Execution order and integrity gates
+
+The [paired-run helper](../scripts/run_deployment_benchmarks.py) runs all nine existing suites without changing their scoring. It requires a fresh output directory below ignored `results/`, checks API health first and records commands, checkpoint revision, image ID, source hashes and vision-image hash. Optional `tegrastats` telemetry is stopped with the run. It preserves reports from failed requests and refuses to overwrite an existing run.
+
+The frozen common protocol uses three measured repetitions and one warmup per scenario for quick, reasoning, context and vision; context targets are 8,192 and 32,768 approximate tokens. Prefix and agent responsiveness each use five first/follow-up pairs with an 8,192 approximate-token prefix and no warmup. Tool routing and fixed multi-turn tasks use five repetitions; seeded generalization uses five variants per family and seed `3628200930879258838`. Request limits remain those shown below. Vision uses `docs/figures/benchmark-proposal.png` as a shared API smoke fixture, without an accuracy score. Prefix-pair markers remain random by design, so these prompts are not byte-identical across deployments.
+
+For example, once the pinned B2 server is healthy:
+
+```bash
+python3 scripts/run_deployment_benchmarks.py \
+  --base-url http://127.0.0.1:8000 --model Qwen3.8-Flash-Next \
+  --container qwen38-flash-next \
+  --checkpoint-revision 6c01ac378d22f6652c9f392c87700496eca8e5dc \
+  --results-dir results/deployment-comparison/b2
+```
+
+Repeat against the verified hybrid endpoint/model/container with a new output directory and its pinned base/delta revisions. `--dry-run` prints the commands without invoking Docker or the API. The separate forum `sgbench` C1 run uses upstream script revision `584c3e6e6476cb81e913d5b059f12a0b2c4c794d` (SHA256 `5328e80dd3f8a7115b8732ce313a93faf3078438949085e3b086a83c183d9eaa`), changing only the endpoint port in local copies. It makes two passes with category-specific output caps and the server's default thinking behavior; these results must remain separate from the repository suites.
 
 ```mermaid
 flowchart TD

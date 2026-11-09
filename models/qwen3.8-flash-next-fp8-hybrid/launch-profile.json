@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "profile": "qwen38-fp8-hybrid-h2-20261108",
+  "status": "one_start_restart_and_finite_sequential_benchmark_observed_not_sustained_load_proven",
+  "launch_script": "models/qwen3.8-flash-next-fp8-hybrid/serve.sh",
+  "container_name": "qwen38-flash-next-fast-v3-fp8hybrid-lowmem",
+  "image": "nemoclaw-thor/qwen38-flash-next-vllm:sm110-fast-v3",
+  "observed_local_image_id": "sha256:9c554a17b5ea2ddc21c5a53c51bd9286d8c871d9fd505bc9caec43b999c5abdf",
+  "recipe_commit": "dd07dcc2f5650916e18e2c706144c6fd1f8bf13c",
+  "runtime_base_commit": "4b723de2e2c465d866738b57ae64bde6e8c07744",
+  "checkpoint_revision": "7b719225242aacd3dbd3f9407468c2ee9a9d2594",
+  "delta_revision": "358162ffaaeb4372c79843d9cd1f67d3654593da",
+  "pinned_launcher_sha256": "c211030a6007eca0ee11d435b7f2745d8c777f499acf8cd4d9ab274168cb5665",
+  "adapted_launcher_sha256": "af6555a49cfbb512371693f7e035b68de0d227606b2fb032b15a46826e8af480",
+  "vllm_version": "0.1.dev20073+g8e685d198",
+  "served_model_name": "qwen3.8-flash-next",
+  "api_base_url": "http://127.0.0.1:8050/v1",
+  "parameters": {
+    "gpu_memory_utilization": 0.88,
+    "kv_cache_memory_bytes": 4294967296,
+    "max_model_len": 131072,
+    "max_num_seqs": 1,
+    "num_speculative_tokens": 3,
+    "model_dtype": "bfloat16",
+    "kv_cache_dtype_argument": "auto",
+    "kv_dtype_resolver_with_logged_model_dtype": "bfloat16",
+    "mamba_ssm_cache_dtype": "bfloat16",
+    "tool_call_parser": "qwen3_coder",
+    "reasoning_parser": "qwen3",
+    "max_num_batched_tokens": 8192,
+    "enable_prefix_caching": true,
+    "enable_chunked_prefill": true
+  },
+  "lifecycle": {
+    "detached": true,
+    "remove_when_stopped": false,
+    "restart_policy": "no"
+  },
+  "observed": {
+    "model_loading_memory_gib": 76.75,
+    "kv_token_capacity": 137662,
+    "maximum_context_exercised_prompt_tokens": 31652,
+    "one_deliberate_restart_passed": true
+  },
+  "limitations": [
+    "H2 adapts memory, context and scheduler settings from the original recipe; no exact original-profile performance result exists here",
+    "Model memory is runtime-reported and includes checkpoint/offload differences, not solely FP8 conversion",
+    "No full configured-context, concurrency or sustained-load validation",
+    "Do not run alongside B2 or another large model server"
+  ]
+}

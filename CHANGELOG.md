@@ -5,6 +5,9 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Added
+- Matched B2/H2 deployment comparison across all nine suites and the pinned forum C1 protocol, with reviewed numeric data, reproducible charts and the unsuccessful H1 startup retained in the report.
+- Comparison orchestration with immutable protocol/source fingerprints, private output preservation, preflight gating, board-input telemetry and export checks for complete denominators and matching seeds.
+- Pinned conservative FP8-hybrid launcher, model provenance and build/start/stop guide; measured H2 retains MTP 3 with B2's 4 GiB KV, 131072 context and single-sequence limits.
 - Pinned FP8-hybrid second benchmark plan and resumable Hugging Face base/delta downloader with manifest and checksum verification; paired measurements remain pending.
 - Illustrated guide to all nine benchmark suites and offline CI checks, with Mermaid workflows for streaming/reasoning, context, vision, fixed-agent tasks, tool-routing cases and report interpretation.
 - Serving-profile reference with complete A/B2 Docker commands, shared features, dated live observations and guidance to use B2 for the current sequential benchmark workload.

@@ -16,6 +16,26 @@
       "parameters_billion_approx": 125,
       "activated_parameters_billion_approx": 6,
       "note": "Checkpoint and deployment settings are independent of public third-party benchmarks."
+    },
+    {
+      "served_model_name": "qwen3.8-flash-next",
+      "checkpoint_repo": "pastoriomarco/Qwen3.8-Flash-Next-NVFP4-FP8-Hybrid-Delta",
+      "checkpoint_url": "https://huggingface.co/pastoriomarco/Qwen3.8-Flash-Next-NVFP4-FP8-Hybrid-Delta/tree/358162ffaaeb4372c79843d9cd1f67d3654593da",
+      "checkpoint_revision": "358162ffaaeb4372c79843d9cd1f67d3654593da",
+      "base_checkpoint_repo": "RadixArk/Qwen3.8-Flash-Next-NVFP4",
+      "base_checkpoint_revision": "7b719225242aacd3dbd3f9407468c2ee9a9d2594",
+      "delta_repo": "pastoriomarco/Qwen3.8-Flash-Next-NVFP4-FP8-Hybrid-Delta",
+      "delta_revision": "358162ffaaeb4372c79843d9cd1f67d3654593da",
+      "delta_url": "https://huggingface.co/pastoriomarco/Qwen3.8-Flash-Next-NVFP4-FP8-Hybrid-Delta/tree/358162ffaaeb4372c79843d9cd1f67d3654593da",
+      "model_family": "Qwen3.8 Flash Next",
+      "quantization": "NVFP4 routed experts plus blockwise FP8 E4M3 dense side matrices",
+      "architecture": "Qwen4ExpForConditionalGeneration",
+      "license_note": "Source-model and RadixArk terms apply to the base and derived delta; benchmark MIT license does not cover weights or runtime.",
+      "reference_url": "https://github.com/pastoriomarco/NemoClaw-Thor/blob/dd07dcc2f5650916e18e2c706144c6fd1f8bf13c/serving/docs/QWEN38-FLASH-NEXT-FAST-THOR.md",
+      "tested_device": "NVIDIA Jetson AGX Thor 128GB",
+      "native_context_tokens": 262144,
+      "max_context_configured_h2": 131072,
+      "note": "Delta is not standalone: assemble with the exact base revision. H2 uses a custom image, MTP 3 and explicit 4 GiB KV; H1 defaults were aborted before API readiness. Model ID is case-sensitive."
     }
   ]
 }
