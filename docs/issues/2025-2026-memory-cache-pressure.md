@@ -1,6 +1,27 @@
 # Recurring unified-memory / filesystem-cache pressure during vLLM startup on Jetson AGX Thor (observed 2025 and 2026)
 
-> Draft GitHub issue. Public sanitized facts only. **Symptom recurrence has been observed; identical root cause across JetPack releases is NOT established.**
+> **Resolved for the current workload through the documented B2 configuration.** Public sanitized facts only. Symptom recurrence across multiple JetPack versions was observed; identical root cause is not established.
+
+## Occurrence across multiple JetPack versions
+
+The operator reports that this issue occurred across **multiple JetPack versions**, rather than only one installation. The preserved early observation is from the Jetson Linux R38.x era, but its exact JetPack package revision was not captured; the later fully recorded environment is JetPack **7.2.1-b49 / Jetson Linux R39.2.1**. Do not infer an exact earlier JetPack version or an identical underlying defect from the recurrence.
+
+## Resolution for the current workload
+
+The startup issue is resolved operationally by the documented **B2 serving configuration**:
+
+```text
+--gpu-memory-utilization 0.88
+--kv-cache-memory-bytes 4294967296
+--max-model-len 131072
+--max-num-seqs 1
+```
+
+This caps the KV cache at 4 GiB and leaves more startup headroom. The repository records that the initial 0.90 attempt with explicit KV still failed the startup gate, whereas B2 at 0.88 started successfully. Explicit KV sizing does not bypass the startup utilization check. The separate missing MTP shard and context-capacity problems remain distinct from this report.
+
+Evidence: [B2 serving profile](https://github.com/kagaho/jetson-thor-llm-bench/blob/main/docs/SERVING_PROFILES.md#b2-command-memory-fix-with-a-persistent-container), [memory investigation](https://github.com/kagaho/jetson-thor-llm-bench/blob/main/docs/MEMORY_AB_EXPERIMENT.md), and merged configuration/lifecycle changes in [PR #7](https://github.com/kagaho/jetson-thor-llm-bench/pull/7), [PR #13](https://github.com/kagaho/jetson-thor-llm-bench/pull/13), and [PR #17](https://github.com/kagaho/jetson-thor-llm-bench/pull/17).
+
+This closes the project's current startup blocker through configuration; it does not establish an upstream kernel/driver fix, identical cross-release causality, maximum-context capacity, or universal long-term stability. Continuous cache dropping is not required as the standing serving procedure.
 
 ## Summary
 
