@@ -1,0 +1,47 @@
+{
+  "renderer": "scripts/render_publication.cjs",
+  "version": 1,
+  "source_sha256": {
+    "docs/data/fp8-hybrid-comparison.json": "050afcc45d6f168b185573203b9d833411b3d244454820b3460b07ba1f48d71e",
+    "docs/benchmarks/2026-11-07-shockwave-five-pair-prefix-agent.md": "9bcda63d849911232319d357956d0b7eca6bb22fc39dad7bd8db40b04249111c",
+    "docs/benchmarks/2026-11-08-fp8-hybrid-comparison.md": "e7498ee22469fc03659b3ae7b0db465ca35d5ccbf3e7f498243bd454e0966ed7"
+  },
+  "figures": {
+    "results-overview.svg": {
+      "type": "measured summary",
+      "sha256": "12825cb9da2cd3c306fee7d81de9397feb08882d39be718954afc752814437d3"
+    },
+    "throughput-by-workload.svg": {
+      "type": "measured summary",
+      "sha256": "3c2e6385963e20f381e2e12ee82cebce2046d1bacabe93f0522f9e8092f2b9bc"
+    },
+    "seeded-outcomes.svg": {
+      "type": "measured summary",
+      "sha256": "035ed6dcb899ac42cb2e8f1d5bb784f1f2586322a2fc6f8ae926e7af15c16272"
+    },
+    "memory-energy.svg": {
+      "type": "measured summary",
+      "sha256": "39c77035ca861551fbe6be1581b9ec8c8d0750128c2d576d3652e5aef143e5ae"
+    },
+    "prefix-overview.svg": {
+      "type": "measured summary",
+      "sha256": "c9aeb928d31edbed2d96e3cc55a4657d00b7a33f4884cc82c660764fb76598a1"
+    },
+    "verification-workflow.svg": {
+      "type": "conceptual reconstruction",
+      "sha256": "54a656cbce3f50795ad74630410c38d3125a9e1031fc6a15cd15c38fdfa8eed8"
+    },
+    "social-preview.png": {
+      "type": "measured summary",
+      "sha256": "57b6f4d9d630aec403a571b977e1732f4f4df947b29a948b3052d8f9f221c502"
+    },
+    "verification-workflow.gif": {
+      "type": "conceptual reconstruction",
+      "sha256": "a9b370108b7d92af14d0a02e514b62619fb36e9f44b9deae8959805c7cf63add"
+    },
+    "prefix-responsiveness.gif": {
+      "type": "animated measured summary",
+      "sha256": "dafb711640c812fd4da939ee40acbc4eec602c4c64eabbad9d467f1de8fdbb9b"
+    }
+  }
+}

@@ -86,6 +86,7 @@ Tracked-file inventory at publication preparation. Raw results and model weights
 - [`docs/figures/memory-energy.svg`](../docs/figures/memory-energy.svg)
 - [`docs/figures/prefix-overview.svg`](../docs/figures/prefix-overview.svg)
 - [`docs/figures/prefix-responsiveness.gif`](../docs/figures/prefix-responsiveness.gif)
+- [`docs/figures/publication-sha256.json`](../docs/figures/publication-sha256.json)
 - [`docs/figures/publication-sources.json`](../docs/figures/publication-sources.json)
 - [`docs/figures/results-overview.svg`](../docs/figures/results-overview.svg)
 - [`docs/figures/seeded-outcomes.svg`](../docs/figures/seeded-outcomes.svg)
