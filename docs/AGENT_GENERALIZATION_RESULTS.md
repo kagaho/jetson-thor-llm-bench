@@ -2,9 +2,9 @@
 
 For illustrated workflows covering all nine live suites and the offline harness tests, start with the [complete benchmark visual guide](BENCHMARK_VISUAL_GUIDE.md). This page focuses on the recorded seeded run.
 
-The latest recorded full run completed **25/30 episodes (83.3%)** with **scorer 0.7.2**, protocol 1, seed `3628200930879258838`, starting at commit `de44842`. Five variants of each of six public task families were included. All five failures were `excessive_verbosity` on the no-tool control; no request errors occurred.
+This historical November 8 run completed **25/30 episodes (83.3%)** with **scorer 0.7.2**, protocol 1, seed `3628200930879258838`, starting at commit `de44842`. Five variants of each of six public task families were included. All five failures were `excessive_verbosity` on the no-tool control; no request errors occurred.
 
-Package v0.7.0 includes scorer **0.7.3**, whose numeric correction is validated offline. These charts preserve the observed 0.7.2 score; no full live-suite score is claimed here for 0.7.3.
+Package v0.7.0 includes scorer **0.7.3**, whose numeric correction is validated offline. These charts preserve the observed 0.7.2 score. The subsequent [matched B2/H2 comparison](benchmarks/2026-11-08-fp8-hybrid-comparison.md) reports separate live scorer 0.7.3 outcomes (25/30 and 22/30 respectively).
 
 ## Outcomes by family
 
@@ -24,7 +24,7 @@ Across all episodes: **103 model turns**, **136 simulated tool calls**, **98,399
 
 - [Test-family diagram](diagrams/14-generalization-test-families.md): required observations, fixture state and final facts for all six families.
 - [Evaluation workflow](diagrams/13-generalization-seeded-fixtures.md): oracle boundary, bounded model/tool loop, failure handling, grading and private reporting.
-- [Serving-profile reference](SERVING_PROFILES.md): B2 is preferred for the current sequential workload; inspect the actual container without restarting it.
+- [Serving-profile reference](SERVING_PROFILES.md): B2 was the historical reference for the sequential workload; inspect the actual container without restarting it.
 - [Scoring protocol](AGENT_GENERALIZATION_EVAL.md): version history, positive/negative gates and remaining heuristic limitations.
 
 Earlier **4/6**, corrected **5/6** and wider **24/30** results remain separately attributed in the investigation note. They used different scorer revisions and/or seeds. They are not combined into a trend line or relabeled using a newer scorer. Fresh generated instances still belong to six public templates, not six withheld task types or unrelated software issues.

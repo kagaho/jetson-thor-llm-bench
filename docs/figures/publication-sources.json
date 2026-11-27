@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "source_commit": "685a0648fb001e0eee8dde0ab5d861d52828f713",
+  "sources": {
+    "docs/data/fp8-hybrid-comparison.json": {
+      "git_blob_sha": "861bc97dfee9d58aead940e2b1abfca1e696bcfd"
+    },
+    "docs/benchmarks/2026-11-07-shockwave-five-pair-prefix-agent.md": {
+      "git_blob_sha": "81c8b6397bdbcd4e1218a20d3f272d80492b7dd7"
+    },
+    "docs/benchmarks/2026-11-08-fp8-hybrid-comparison.md": {
+      "git_blob_sha": "8ac2432d4a553d87c2e1ed90611fe9f697bf0c28"
+    }
+  },
+  "renderer": "scripts/render_publication.cjs",
+  "figures": [
+    {
+      "path": "results-overview.svg",
+      "type": "measured summary",
+      "measurement_date": "2026-11-08"
+    },
+    {
+      "path": "throughput-by-workload.svg",
+      "type": "measured summary",
+      "measurement_date": "2026-11-08"
+    },
+    {
+      "path": "seeded-outcomes.svg",
+      "type": "measured summary",
+      "measurement_date": "2026-11-08"
+    },
+    {
+      "path": "memory-energy.svg",
+      "type": "measured summary",
+      "measurement_date": "2026-11-08"
+    },
+    {
+      "path": "prefix-overview.svg",
+      "type": "measured summary",
+      "measurement_date": "2026-11-07"
+    },
+    {
+      "path": "verification-workflow.svg",
+      "type": "conceptual reconstruction",
+      "measurement_date": "2026-11-08"
+    },
+    {
+      "path": "social-preview.png",
+      "type": "measured summary",
+      "measurement_date": "2026-11-08"
+    },
+    {
+      "path": "verification-workflow.gif",
+      "type": "conceptual reconstruction",
+      "measurement_date": "2026-11-08"
+    },
+    {
+      "path": "prefix-responsiveness.gif",
+      "type": "animated measured summary",
+      "measurement_date": "2026-11-07"
+    }
+  ]
+}

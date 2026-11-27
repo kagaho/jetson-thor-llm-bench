@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 460" role="img" aria-labelledby="title desc"><title id="title">Shared context, faster first output</title><desc id="desc">November 7 · five first/follow-up pairs per suite Positive server-wide cache-hit deltas: 10/10 follow-ups. Per-request attribution is not established.</desc><rect width="1000" height="460" rx="14" fill="#101c2c"/>
+<text x="32" y="48" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#eef5fc" text-anchor="start">Shared context, faster first output</text>
+<text x="32" y="78" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#b2c5d9" text-anchor="start">November 7 · five first/follow-up pairs per suite</text>
+<text x="32" y="439" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="400" fill="#b2c5d9" text-anchor="start">Positive server-wide cache-hit deltas: 10/10 follow-ups. Per-request attribution is not established.</text>
+<rect x="32" y="100" width="15" height="15" rx="5" fill="#44b9ef"/>
+<text x="56" y="113" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" fill="#b2c5d9" text-anchor="start">First request</text>
+<rect x="260" y="100" width="15" height="15" rx="5" fill="#ffbd69"/>
+<text x="284" y="113" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="400" fill="#b2c5d9" text-anchor="start">Follow-up</text>
+<text x="32" y="169" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" fill="#eef5fc" text-anchor="start">Identical prefix</text>
+<rect x="320" y="150" width="500" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="150" width="381.8181818181818" height="19" rx="5" fill="#44b9ef"/>
+<text x="710.8181818181818" y="166" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">4.20 s</text>
+<rect x="320" y="178" width="500" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="178" width="46.36363636363637" height="19" rx="5" fill="#ffbd69"/>
+<text x="375.3636363636364" y="194" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">0.51 s</text>
+<text x="320" y="222" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#48d8af" text-anchor="start">8.23× median paired TTFT ratio</text>
+<text x="32" y="299" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" fill="#eef5fc" text-anchor="start">Agent-style prefix</text>
+<rect x="320" y="280" width="500" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="280" width="410.90909090909093" height="19" rx="5" fill="#44b9ef"/>
+<text x="739.909090909091" y="296" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">4.52 s</text>
+<rect x="320" y="308" width="500" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="308" width="57.27272727272727" height="19" rx="5" fill="#ffbd69"/>
+<text x="386.27272727272725" y="324" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">0.63 s</text>
+<text x="320" y="352" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#48d8af" text-anchor="start">7.18× median paired TTFT ratio</text>
+</svg>

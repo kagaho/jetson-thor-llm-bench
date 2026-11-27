@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 560" role="img" aria-labelledby="title desc"><title id="title">Faster inference. Different agent behavior.</title><desc id="desc">Qwen3.8 Flash Next · Jetson AGX Thor · 8 Nov 2026 Synthetic workflow gates; deployment-level comparison, not precision-only. C1: two passes per arm.</desc><rect width="1000" height="560" rx="14" fill="#101c2c"/>
+<text x="32" y="48" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#eef5fc" text-anchor="start">Faster inference. Different agent behavior.</text>
+<text x="32" y="78" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#b2c5d9" text-anchor="start">Qwen3.8 Flash Next · Jetson AGX Thor · 8 Nov 2026</text>
+<text x="32" y="539" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="400" fill="#b2c5d9" text-anchor="start">Synthetic workflow gates; deployment-level comparison, not precision-only. C1: two passes per arm.</text>
+<rect x="32" y="99" width="15" height="15" rx="5" fill="#44b9ef"/>
+<text x="56" y="112" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#b2c5d9" text-anchor="start">B2 NVFP4</text>
+<rect x="262" y="99" width="15" height="15" rx="5" fill="#ffbd69"/>
+<text x="286" y="112" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#b2c5d9" text-anchor="start">H2 FP8 hybrid</text>
+<text x="32" y="161" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" fill="#eef5fc" text-anchor="start">C1 end-to-end rate</text>
+<rect x="320" y="142" width="540" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="142" width="217.96929" height="19" rx="5" fill="#44b9ef"/>
+<text x="546.96929" y="158" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">24.22 tok/s</text>
+<rect x="320" y="170" width="540" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="170" width="370.484658" height="19" rx="5" fill="#ffbd69"/>
+<text x="699.4846580000001" y="186" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">41.16 tok/s</text>
+<text x="32" y="236" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#48d8af" text-anchor="start">1.70× observed throughput</text>
+<text x="32" y="282" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" fill="#eef5fc" text-anchor="start">First tool decision</text>
+<rect x="320" y="263" width="540" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="263" width="540" height="19" rx="5" fill="#44b9ef"/>
+<text x="869" y="279" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">30/30</text>
+<rect x="320" y="291" width="540" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="291" width="540" height="19" rx="5" fill="#ffbd69"/>
+<text x="869" y="307" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">30/30</text>
+<text x="32" y="363" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" fill="#eef5fc" text-anchor="start">Fixed multi-turn</text>
+<rect x="320" y="344" width="540" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="344" width="432" height="19" rx="5" fill="#44b9ef"/>
+<text x="761" y="360" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">20/25</text>
+<rect x="320" y="372" width="540" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="372" width="540" height="19" rx="5" fill="#ffbd69"/>
+<text x="869" y="388" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">25/25</text>
+<text x="32" y="444" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" fill="#eef5fc" text-anchor="start">Seeded workflows</text>
+<rect x="320" y="425" width="540" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="425" width="450" height="19" rx="5" fill="#44b9ef"/>
+<text x="779" y="441" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">25/30</text>
+<rect x="320" y="453" width="540" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="453" width="396" height="19" rx="5" fill="#ffbd69"/>
+<text x="725" y="469" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">22/30</text>
+</svg>
