@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 520" role="img" aria-labelledby="title desc"><title id="title">A passing test is not the whole workflow</title><desc id="desc">Conceptual reconstruction of a documented failure pattern · not an episode trace Three H2 repair episodes omitted the required pre-edit failing test. No real code ran.</desc><rect width="1000" height="520" rx="14" fill="#101c2c"/>
+<text x="32" y="48" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#eef5fc" text-anchor="start">A passing test is not the whole workflow</text>
+<text x="32" y="78" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#b2c5d9" text-anchor="start">Conceptual reconstruction of a documented failure pattern · not an episode trace</text>
+<text x="32" y="499" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="400" fill="#b2c5d9" text-anchor="start">Three H2 repair episodes omitted the required pre-edit failing test. No real code ran.</text>
+<text x="250" y="119" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" fill="#44b9ef" text-anchor="middle">Required workflow</text>
+<text x="750" y="119" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" fill="#ffbd69" text-anchor="middle">Observed omission pattern</text>
+<rect x="32" y="140" width="436" height="66" rx="8" fill="#192c42"/>
+<text x="48" y="166" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#eef5fc" text-anchor="start">Source + failing test</text>
+<text x="48" y="188" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" fill="#b2c5d9" text-anchor="start">Either order</text>
+<text x="250" y="220" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" fill="#b2c5d9" text-anchor="middle">↓</text>
+<rect x="32" y="223" width="436" height="66" rx="8" fill="#192c42"/>
+<text x="48" y="249" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#eef5fc" text-anchor="start">Simulated edit</text>
+<text x="48" y="271" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" fill="#b2c5d9" text-anchor="start">In-memory fixture</text>
+<text x="250" y="303" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" fill="#b2c5d9" text-anchor="middle">↓</text>
+<rect x="32" y="306" width="436" height="66" rx="8" fill="#192c42"/>
+<text x="48" y="332" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#eef5fc" text-anchor="start">Passing simulated test</text>
+<text x="48" y="354" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" fill="#b2c5d9" text-anchor="start">Post-edit observation</text>
+<text x="250" y="386" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" fill="#b2c5d9" text-anchor="middle">↓</text>
+<rect x="32" y="389" width="436" height="66" rx="8" fill="#194b46"/>
+<text x="48" y="415" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#eef5fc" text-anchor="start">PASS</text>
+<text x="48" y="437" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" fill="#b2c5d9" text-anchor="start">Evidence gate satisfied</text>
+<rect x="532" y="140" width="436" height="66" rx="8" fill="#192c42"/>
+<text x="548" y="166" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#eef5fc" text-anchor="start">Source read</text>
+<text x="548" y="188" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" fill="#b2c5d9" text-anchor="start">Conceptual sequence</text>
+<text x="750" y="220" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" fill="#b2c5d9" text-anchor="middle">↓</text>
+<rect x="532" y="223" width="436" height="66" rx="8" fill="#603543"/>
+<text x="548" y="249" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#eef5fc" text-anchor="start">Pre-edit test omitted</text>
+<text x="548" y="271" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" fill="#b2c5d9" text-anchor="start">Required evidence missing</text>
+<text x="750" y="303" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" fill="#b2c5d9" text-anchor="middle">↓</text>
+<rect x="532" y="306" width="436" height="66" rx="8" fill="#192c42"/>
+<text x="548" y="332" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#eef5fc" text-anchor="start">Simulated edit + test pass</text>
+<text x="548" y="354" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" fill="#b2c5d9" text-anchor="start">Post-edit observation</text>
+<text x="750" y="386" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" fill="#b2c5d9" text-anchor="middle">↓</text>
+<rect x="532" y="389" width="436" height="66" rx="8" fill="#603543"/>
+<text x="548" y="415" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#eef5fc" text-anchor="start">FAIL</text>
+<text x="548" y="437" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="400" fill="#b2c5d9" text-anchor="start">Evidence gate rejected</text>
+</svg>

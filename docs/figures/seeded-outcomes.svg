@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 575" role="img" aria-labelledby="title desc"><title id="title">Where the seeded workflows failed</title><desc id="desc">Same seed · scorer 0.7.3 · five variants per public task family Both arms failed all five no-tool brevity gates; the three extra H2 failures omit pre-edit test evidence.</desc><rect width="1000" height="575" rx="14" fill="#101c2c"/>
+<text x="32" y="48" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#eef5fc" text-anchor="start">Where the seeded workflows failed</text>
+<text x="32" y="78" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#b2c5d9" text-anchor="start">Same seed · scorer 0.7.3 · five variants per public task family</text>
+<text x="32" y="554" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="400" fill="#b2c5d9" text-anchor="start">Both arms failed all five no-tool brevity gates; the three extra H2 failures omit pre-edit test evidence.</text>
+<text x="600" y="119" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#44b9ef" text-anchor="middle">B2 NVFP4</text>
+<text x="820" y="119" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#ffbd69" text-anchor="middle">H2 FP8 hybrid</text>
+<text x="32" y="167" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600" fill="#eef5fc" text-anchor="start">Symbol origin</text>
+<rect x="506" y="137" width="188" height="46" rx="5" fill="#194b46"/>
+<text x="600" y="168" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" fill="#eef5fc" text-anchor="middle">5/5</text>
+<rect x="726" y="137" width="188" height="46" rx="5" fill="#194b46"/>
+<text x="820" y="168" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" fill="#eef5fc" text-anchor="middle">5/5</text>
+<text x="32" y="226" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600" fill="#eef5fc" text-anchor="start">Repair regression</text>
+<rect x="506" y="196" width="188" height="46" rx="5" fill="#194b46"/>
+<text x="600" y="227" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" fill="#eef5fc" text-anchor="middle">5/5</text>
+<rect x="726" y="196" width="188" height="46" rx="5" fill="#694a2b"/>
+<text x="820" y="227" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" fill="#eef5fc" text-anchor="middle">2/5</text>
+<text x="32" y="285" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600" fill="#eef5fc" text-anchor="start">Moved runbook</text>
+<rect x="506" y="255" width="188" height="46" rx="5" fill="#194b46"/>
+<text x="600" y="286" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" fill="#eef5fc" text-anchor="middle">5/5</text>
+<rect x="726" y="255" width="188" height="46" rx="5" fill="#194b46"/>
+<text x="820" y="286" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" fill="#eef5fc" text-anchor="middle">5/5</text>
+<text x="32" y="344" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600" fill="#eef5fc" text-anchor="start">Transient read</text>
+<rect x="506" y="314" width="188" height="46" rx="5" fill="#194b46"/>
+<text x="600" y="345" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" fill="#eef5fc" text-anchor="middle">5/5</text>
+<rect x="726" y="314" width="188" height="46" rx="5" fill="#194b46"/>
+<text x="820" y="345" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" fill="#eef5fc" text-anchor="middle">5/5</text>
+<text x="32" y="403" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600" fill="#eef5fc" text-anchor="start">Environment disambiguation</text>
+<rect x="506" y="373" width="188" height="46" rx="5" fill="#194b46"/>
+<text x="600" y="404" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" fill="#eef5fc" text-anchor="middle">5/5</text>
+<rect x="726" y="373" width="188" height="46" rx="5" fill="#194b46"/>
+<text x="820" y="404" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" fill="#eef5fc" text-anchor="middle">5/5</text>
+<text x="32" y="462" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600" fill="#eef5fc" text-anchor="start">No-tool brevity gate</text>
+<rect x="506" y="432" width="188" height="46" rx="5" fill="#633643"/>
+<text x="600" y="463" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" fill="#eef5fc" text-anchor="middle">0/5</text>
+<rect x="726" y="432" width="188" height="46" rx="5" fill="#633643"/>
+<text x="820" y="463" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" fill="#eef5fc" text-anchor="middle">0/5</text>
+</svg>

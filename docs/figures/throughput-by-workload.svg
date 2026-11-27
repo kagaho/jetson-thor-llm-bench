@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 645" role="img" aria-labelledby="title desc"><title id="title">Throughput by workload</title><desc id="desc">Two C1 request rates averaged per workload · 8 Nov 2026 End-to-end completion rate includes prefill; response correctness is not graded.</desc><rect width="1000" height="645" rx="14" fill="#101c2c"/>
+<text x="32" y="48" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#eef5fc" text-anchor="start">Throughput by workload</text>
+<text x="32" y="78" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#b2c5d9" text-anchor="start">Two C1 request rates averaged per workload · 8 Nov 2026</text>
+<text x="32" y="624" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="400" fill="#b2c5d9" text-anchor="start">End-to-end completion rate includes prefill; response correctness is not graded.</text>
+<rect x="32" y="99" width="15" height="15" rx="5" fill="#44b9ef"/>
+<text x="56" y="112" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#b2c5d9" text-anchor="start">B2 NVFP4</text>
+<rect x="262" y="99" width="15" height="15" rx="5" fill="#ffbd69"/>
+<text x="286" y="112" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#b2c5d9" text-anchor="start">H2 FP8 hybrid</text>
+<text x="32" y="158" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" fill="#eef5fc" text-anchor="start">Q&amp;A</text>
+<rect x="320" y="139" width="540" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="139" width="196.17658651951123" height="19" rx="5" fill="#44b9ef"/>
+<text x="525.1765865195113" y="155" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">21.80 tok/s</text>
+<rect x="320" y="167" width="540" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="167" width="372.9760765550239" height="19" rx="5" fill="#ffbd69"/>
+<text x="701.9760765550238" y="183" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">41.44 tok/s</text>
+<text x="32" y="252" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" fill="#eef5fc" text-anchor="start">Code</text>
+<rect x="320" y="233" width="540" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="233" width="216.9101095451206" height="19" rx="5" fill="#44b9ef"/>
+<text x="545.9101095451206" y="249" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">24.10 tok/s</text>
+<rect x="320" y="261" width="540" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="261" width="426.86006563429396" height="19" rx="5" fill="#ffbd69"/>
+<text x="755.860065634294" y="277" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">47.43 tok/s</text>
+<text x="32" y="346" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" fill="#eef5fc" text-anchor="start">JSON</text>
+<rect x="320" y="327" width="540" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="327" width="221.7783251231527" height="19" rx="5" fill="#44b9ef"/>
+<text x="550.7783251231527" y="343" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">24.64 tok/s</text>
+<rect x="320" y="355" width="540" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="355" width="453.52853809680914" height="19" rx="5" fill="#ffbd69"/>
+<text x="782.5285380968091" y="371" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">50.39 tok/s</text>
+<text x="32" y="440" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" fill="#eef5fc" text-anchor="start">Math</text>
+<rect x="320" y="421" width="540" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="421" width="205.45792110684403" height="19" rx="5" fill="#44b9ef"/>
+<text x="534.457921106844" y="437" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">22.83 tok/s</text>
+<rect x="320" y="449" width="540" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="449" width="414.40993788819884" height="19" rx="5" fill="#ffbd69"/>
+<text x="743.4099378881988" y="465" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">46.05 tok/s</text>
+<text x="32" y="534" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" fill="#eef5fc" text-anchor="start">LongCode</text>
+<rect x="320" y="515" width="540" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="515" width="217.81132780146396" height="19" rx="5" fill="#44b9ef"/>
+<text x="546.8113278014639" y="531" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">24.20 tok/s</text>
+<rect x="320" y="543" width="540" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="543" width="337.7261178998254" height="19" rx="5" fill="#ffbd69"/>
+<text x="666.7261178998253" y="559" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">37.53 tok/s</text>
+</svg>

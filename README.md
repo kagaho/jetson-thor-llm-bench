@@ -1,275 +1,109 @@
 # Jetson Thor LLM Bench ⚡
 
-**A minimal, reproducible, public-ready benchmark harness for local LLM/VLM inference on NVIDIA Jetson AGX Thor.** Designed around an existing vLLM OpenAI-compatible server; no dependencies beyond Python's standard library.
+**Benchmark inference speed. Measure agent behavior. Understand the trade-offs.**
 
-> **Status:** v0.7.0. These synthetic benchmarks do not establish real-repository coding quality. Not affiliated with NVIDIA, Qwen, or vLLM.
+Nine reproducible benchmark suites for local LLM/VLM inference on NVIDIA Jetson AGX Thor. Use an existing vLLM OpenAI-compatible endpoint with Python's standard library. No model download or server restart is required by the benchmark harness.
 
-**Release versus scorer versions:** package [v0.7.0](https://github.com/kagaho/jetson-thor-llm-bench/releases/tag/v0.7.0) includes generalization scorer `0.7.3` and protocol `1`. Scorer revisions `0.7.1` and later identify evaluation behavior independently of package releases and GitHub tags. See the [generalization scoring history](docs/AGENT_GENERALIZATION_EVAL.md) and [release workflow](docs/RELEASING.md).
+[Results](#benchmark-results) · [Workflow demo](#why-verification-matters) · [Quick start](#quick-start) · [All nine suites](#benchmark-suites) · [Reproduce](docs/OPERATIONS.md) · [File index](docs/INDEX.md)
 
-## Why this repository?
+## Benchmark results
 
-Large, quantized MoE models now run on single 128 GB unified-memory devices, but "it boots" is different from measuring **first-token latency, visible-answer latency, sustained decoding, reasoning overhead and context reliability**. This repository records those dimensions without committing private prompts, device identifiers, or model files.
+**Does faster inference make a better agent?** On one 128 GB Jetson AGX Thor, two Qwen3.8 Flash Next deployments achieved **24.22 vs 41.16 tok/s** on the same public C1 throughput protocol. The faster deployment completed fewer seeded repair workflows.
 
-### Proposal
+![Observed throughput and synthetic task outcomes](docs/figures/results-overview.svg)
 
-We combine nine complementary suites to measure local-model responsiveness, context reuse, and simulated agent behavior through reproducible evidence.
-
-![Animated suite map covering model response, context reuse, agent simulation, offline checks, and reviewable evidence.](docs/figures/benchmark-proposal.gif)
-
-[View the still diagram.](docs/figures/benchmark-proposal.png)
-
-### Suites
-
-**Illustrated walkthrough:** the [visual guide to every benchmark](docs/BENCHMARK_VISUAL_GUIDE.md) explains each suite's inputs, step-by-step workflow, exact PASS gate, counting unit and result interpretation. It links the Mermaid test diagrams, published graphs and offline CI coverage map.
-
-| Suite | Measures | What it does *not* claim |
-|---|---|---|
-| `quick` | Streaming TTFT, TTFC, generation throughput, latency | A standardized coding score |
-| `reasoning` | Off / low / medium on the same prompt | Identical output quality across modes |
-| `context` | Needle-in-haystack correctness at increasing approximate lengths | Full native context validation |
-| `vision` | Local image request / response completeness | Visual accuracy or camera FPS |
-| `prefix` | Independent first/repeat pairs, optional `/metrics` cache counters, TTFT/TTFC | That faster repetition proves cache was used |
-| `agent` | Long shared repository context with changing user task, optional cache evidence | A full coding-agent correctness or tool-use benchmark |
-| `tool-routing` | Real structured function selection and argument accuracy against six synthetic fixtures | Actual code execution or multi-step agent task completion |
-| `agent-generalization` | Seed-derived synthetic repo variations, decoys, fault recovery, and multi-turn outcome scoring | Held-out real repos, arbitrary coding correctness or sandboxed execution |
-| `agent-multiturn` | Five deterministic simulated repository episodes with intermediate tool observations and recovery | Executed shell commands, real code edits, or open-ended agent reliability |
-
-## Prerequisites
-
-- Python **3.10+** (`python3` is enough; no pip install required).
-- An **already running** vLLM OpenAI-compatible service, e.g. Qwen3.8 Flash Next on Thor, bound to `127.0.0.1:8000`.
-- Adequate free memory. Benchmark code is lightweight; **the model is not**.
-- Run on Shockwave's terminal for localhost access. With SSH from another machine, use SSH tunneling rather than publicly exposing the API.
-
-## Quick start on Shockwave
-
-```bash
-cd ~/Documents/jetson-thor-llm-bench
-python3 -m unittest discover -s tests -v   # offline tests
-python3 -m thorbench doctor                 # vLLM health, model, context, platform info
-python3 -m thorbench bench --suite quick --runs 3
-cat results/*-quick/summary.md
-```
-
-This does **not** restart the currently working container and does **not** download weights.
-
-### Model provenance and public results
-
-```bash
-python3 -m thorbench doctor       # local model name, checkpoint, configured context
-python3 -m thorbench references   # external source catalog (offline)
-python3 -m thorbench compare --run results/<timestamp>-quick
-```
-
-The first supported model is **Qwen3.8 Flash Next**, served as `Qwen3.8-Flash-Next`, with checkpoint `local-inference-lab/Qwen3.8-Flash-Next-NVFP4`. Public references include the [official NVIDIA Thor recipe](https://www.jetson-ai-lab.com/models/qwen3-8-flash-next/), [Leibniz-HBI's vLLM Thor report](https://github.com/Leibniz-HBI/Qwen3.8-Flash-Next-Jetson-Thor-vLLM), and an [NVIDIA forum FP8-hybrid result](https://forums.developer.nvidia.com/t/qwen3-8-flash-next-at-46-7-tok-s-on-jetson-agx-thor/383269). **These are not matched head-to-head results.** See [public comparison methodology](docs/PUBLIC_BENCHMARKS.md).
-
-The model-specific deployment guide and launch script live under [`models/qwen3.8-flash-next/`](models/qwen3.8-flash-next/README.md). Future model integrations should follow the same directory convention.
-
-### Reproducing the **actual** launch configuration
-
-**Profile reference:** [complete A/B2 Docker commands, features and live verification](docs/SERVING_PROFILES.md). The latest inspection on 2026-11-08 matched B2 (`0.88`, 4 GiB KV, `131072` context), preferred for the current benchmarks. The `0.90` / `212992` command below is the historical A recipe; check the live flags before selecting a profile.
-
-The validated baseline is checked in as [full `docker run` recipe](models/qwen3.8-flash-next/serve.sh) plus [machine-readable deployment profile](models/qwen3.8-flash-next/launch-profile.json) (image digest at pull, all Docker runtime/volume/environment options and all vLLM arguments). The script is **not automatically executed** by benchmarks. Actual running flags can differ from this declaration; capture them safely using Docker inspection:
-
-```bash
-python3 -m thorbench doctor --container qwen38-flash-next
-python3 -m thorbench bench --suite quick --runs 3 --container qwen38-flash-next
-# Structured metadata.json includes deployment.vllm_flags, prefix_caching_flag and declared_launch_profile.sha256.
-# Neither command restarts Docker nor copies prompts, raw env, bind mounts or credentials.
-```
-
-If a container cannot be inspected, omit `--container` for normal testing; never pretend the declared recipe is the observed live configuration. Unknown effective defaults are marked *not explicitly set*, not "off". Checkpoint revision, image digest, power and clocks still require independent confirmation. Read [optimization matrix](docs/OPTIMIZATION_MATRIX.md) and [feature workflow diagrams](docs/diagrams/README.md) before modifying flags.
-
-### Observed prefix responsiveness on Shockwave (2026-11-07)
-
-![First/repeated prompt TTFT on Shockwave; cache hit mechanism not verified](docs/figures/shockwave-prefix-ttft-2026-11-07.svg)
-
-Two operator-supplied historical pairs, each with ~6,082 actual prompt tokens, show **8.63×** and **8.06×** faster TTFT on repetition. These are *observed short runs*, not a statistically established improvement or verified cache reuse: `cached_prompt_tokens` was **missing** for all four calls. See the [full numeric case study](docs/benchmarks/2026-11-07-shockwave-prefix.md), [evidence-gating workflow](docs/diagrams/08-prefix-cache-evidence.md), and [agent-style follow-up sequence](docs/diagrams/09-agent-prefix-sequence.md).
-
-### Five-pair live benchmark: prefix + changing agent tasks
-
-![First/follow-up TTFT and total latency, five request pairs per suite](docs/figures/shockwave-five-pair-ttft-latency-2026-11-07.svg)
-
-The next controlled run completed **20/20 requests**: identical-prefix first/repeat median paired TTFT ratio **8.23×**, and synthetic agent-style follow-up **7.18×** (five pairs each). All ten follow-ups showed **positive server-wide prefix-cache hit-counter deltas**, stronger evidence than latency alone but not definitive per-request attribution without an isolated endpoint. Decoding remained near **24–25 tokens/s**. Read the [five-pair benchmark and caveats](docs/benchmarks/2026-11-07-shockwave-five-pair-prefix-agent.md). These are *responsiveness*, not code-correctness, results.
-
-### Repeated-pair and agent-like probes (no restart)
-
-```bash
-# Five independent repeat pairs; no warmup inside these paired workloads:
-python3 -m thorbench bench --suite prefix --runs 5 --warmup 0 \
-  --prefix-tokens 8192 --container qwen38-flash-next
-# Different user request, stable long system/repository prefix:
-python3 -m thorbench bench --suite agent --runs 5 --warmup 0 \
-  --prefix-tokens 8192 --container qwen38-flash-next
-```
-
-The benchmark attempts read-only `/metrics` scrapes before/after each request and reports **server-wide prefix cache counter deltas** when available. `None` means unavailable, *not* zero hits. Other clients can contaminate attribution; see the [reproducible agent/prefix protocol](docs/AGENT_BENCHMARK_PROTOCOL.md). The `agent` suite is a synthetic responsiveness probe, not proof of correct code execution.
-
-Or run the original short smoke sequence: `bash scripts/benchmark_baseline.sh`. The current launch script does not explicitly select prefix caching, and engine defaults vary. Do not equate these results with the [external 46.7 tok/s FP8-hybrid report](https://forums.developer.nvidia.com/t/qwen3-8-flash-next-at-46-7-tok-s-on-jetson-agx-thor/383269) or the [external coding-agent field report](https://forums.developer.nvidia.com/t/qwen3-8-flash-next-at-46-7-tok-s-on-jetson-agx-thor/383269/6).
-
-
-### First-decision coding-agent tool routing (no Docker restart)
-
-```bash
-python3 -m thorbench.tool_eval --runs 2
-cat "$(ls -td results/*-tool-routing | head -1)/summary.md"
-```
-
-This uses **real model function-calling responses**, but never executes model-selected tools or shell commands. It scores six deterministic cases (including a no-tool negative control) and records timing without publishing prompts or generated arguments. See [tool-routing protocol](docs/AGENT_TOOL_EVAL.md), [decision workflow](docs/diagrams/10-agent-tool-evaluation.md), and the [memory/KV-cache A/B restart plan](docs/MEMORY_AB_EXPERIMENT.md). **The B2 experiment has now completed startup and initial benchmark gates; keep the running container active during follow-up validation.**
-
-### Multi-turn coding-agent simulator (v0.6.0)
-
-```bash
-python3 -m thorbench.agent_eval --runs 5
-cat "$(ls -td results/*-agent-multiturn | head -1)/summary.md"
-```
-
-On Shockwave's existing B2 container, the five fixed synthetic tasks completed **25/25 episodes** across five repetitions each (median whole-task latency **12.23s**). They exercise search/read, in-memory test repair/retest, missing-document recovery, a transient-error retry, and a no-tool control. The model called declared simulator tools across multiple model turns; **no model-generated code or shell commands were run and no real repository files were modified**. The evaluator's narrow deterministic scoring should not be extrapolated to open-ended software engineering. See the [25-episode benchmark report](docs/benchmarks/2026-11-08-shockwave-multiturn-25-episodes.md), [evaluation protocol](docs/AGENT_MULTI_TURN_EVAL.md), and [agent state-machine diagram](docs/diagrams/12-multi-turn-simulator.md). The current B2 vLLM container needs no restart.
-
-### Experimental B2 low-memory profile (2026-11-08)
-
-![Available RAM and tool-routing latency, baseline A versus B2](docs/figures/shockwave-a-b2-memory-and-tool-latency.svg)
-
-B2 started successfully using **4 GiB explicit KV cache**, **0.88 startup utilization threshold**, and **131,072 max context**, with **30/30** first-decision tool-routing passes and successful 8K/32K targeted retrieval. Available RAM was **2.9 GiB** after tests versus a **1.1 GiB** baseline snapshot, but conditions were not matched. Some B2 tool cases generated *more tokens*, explaining much of the observed total-latency difference. **B2 trades away configured context capacity** and is not established as generally superior.
-
-Use the [A/B benchmark case study](docs/benchmarks/2026-11-08-shockwave-b2-vs-a.md), [generated-output versus input-length analysis](docs/benchmarks/2026-11-08-shockwave-b2-output-length-context.md), and [memory runbook](docs/MEMORY_AB_EXPERIMENT.md). Launch scripts are [baseline A](models/qwen3.8-flash-next/serve.sh) and [pinned B2 experimental profile](models/qwen3.8-flash-next/serve-lowmem.sh). **Do not run either script while a serving container is already active.**
-
-### v0.7.0: Seed-varying simulated-agent generalization (no restart)
-
-The v0.6.0 benchmark completed 25/25 **repetitions of five fixed public tasks**, not 25 unique coding problems. The v0.7.0 benchmark generates **six task families with fresh synthetic paths, values, distractors and error patterns** for each seeded episode; it checks ordered tool observations, final-answer facts, and in-memory fixture state. It still does **not** execute code, run actual tests or modify the host repository.
-
-```bash
-# From the v0.7.0 checkout:
-python3 -m unittest discover -s tests -v
-python3 -m thorbench.generalize_eval --runs 1
-cat "$(ls -td results/*-agent-generalization | head -1)/summary.md"
-# Reproduce a specific run using the seed printed and stored in metadata.json:
-# python3 -m thorbench.generalize_eval --runs 1 --seed 123456
-```
-
-Run against the **existing** vLLM server without Docker changes. The default seed is randomly selected and recorded locally; results are gitignored. The generated fixtures are variants of *public templates*, not a statistically representative sample of unseen SWE tasks. Scores for v0.6.0's fixed tasks and v0.7.0's generated variants must be reported separately. See the [generalization protocol](docs/AGENT_GENERALIZATION_EVAL.md) and [seeded task diagram](docs/diagrams/13-generalization-seeded-fixtures.md).
-
-A developer run using scorer **0.7.2** completed **25/30** episodes: all five repository task families passed 5/5, while all five no-tool answers failed the brevity gate. This is a recorded historical score, separate from the current scorer revision. See the [versioned measurements and limitations](docs/benchmarks/2026-11-08-generalization-followup.md#fresh-versioned-live-run-scorer-072-2530).
-
-![Seeded family outcomes under scorer 0.7.2: 25 passes and five no-tool verbosity failures](docs/figures/agent-generalization-outcomes-2026-11-08.svg)
-
-The [visual results guide](docs/AGENT_GENERALIZATION_RESULTS.md) includes the latency graph, [test-family diagram](docs/diagrams/14-generalization-test-families.md), [evaluation workflow](docs/diagrams/13-generalization-seeded-fixtures.md), numeric source data and reproduction command.
-
-### Reasoning-mode comparison
-
-```bash
-python3 -m thorbench bench --suite reasoning --runs 2
-```
-
-All modes use the same coding prompt. Note that `enable_thinking=false` depends on support from the chosen Qwen model and chat template; any rejected request will be shown as a failure, not silently retried with a different setting.
-
-### Context reliability (start small)
-
-```bash
-python3 -m thorbench bench --suite context --runs 1 --warmup 0
-# More demanding (opt in after watching memory in jtop):
-python3 -m thorbench bench --suite context --context-sizes 16384,32768 --runs 1 --warmup 0
-# MUCH later: deliberately opt in to large tests:
-# python3 -m thorbench bench --suite context --context-sizes 65536 --allow-large-context --runs 1 --warmup 0
-```
-
-Targets are approximate; see `prompt_tokens` for the server's actual count. The context suite stops after the first failure. **Do not start with a 212K input** just because `/v1/models` reports a 212,992-token maximum.
-
-### Vision request
-
-```bash
-python3 -m thorbench bench --suite vision --image ~/Pictures/test.jpg --runs 1 --warmup 0
-```
-
-Use your own test image. It is sent in memory as a data URI and is **not persisted** in the benchmark results. The test checks API response success, not whether the description is accurate.
-
-## Summary and next benchmark
-
-The second deployment benchmark is complete: the **H2 FP8 hybrid measured 41.16 tok/s**, versus **24.22 tok/s for B2**, on the same public two-pass `sgbench` C1 protocol. Both used one sequence, 131072 configured context and explicit 4 GiB KV. This is a **1.70× observed deployment-level difference**, combining checkpoint, runtime and serving-feature changes within the same Qwen3.8 Flash Next family.
-
-| Fresh matched task suite | B2 NVFP4 | H2 FP8 hybrid |
+| November 8, 2026 | B2 NVFP4 | H2 FP8 hybrid |
 |---|---:|---:|
+| **C1 end-to-end throughput** | **24.22 tok/s** | **41.16 tok/s** |
 | First-decision routing | 30/30 | 30/30 |
 | Fixed multi-turn completion | 20/25 | 25/25 |
-| Seeded workflow completion, scorer 0.7.3 | 25/30 | 22/30 |
+| Seeded workflow completion (scorer 0.7.3) | 25/30 | 22/30 |
+| **Seeded repair regression** | **5/5** | **2/5** |
+| Median seeded episode time, all outcomes | 17.70 s | 9.13 s |
+| Reported model-loading memory | 97.84 GiB | 76.75 GiB |
+| Estimated board-input energy, nine-suite window | 26.49 Wh | 14.75 Wh |
 
-H2 finished responses sooner but missed the required failing-test-before-edit step in three seeded repair episodes. Both deployments failed the seeded no-tool brevity gate. The original larger automatic-KV hybrid profile blocked GPU monitoring before API readiness; H2's smaller memory profile passed one deliberate restart and the measured suites. Read the [complete comparison, graphs and trade-offs](docs/benchmarks/2026-11-08-fp8-hybrid-comparison.md), [H2 launch guide](models/qwen3.8-flash-next-fp8-hybrid/README.md) and [B2 retained-container command](docs/SERVING_PROFILES.md#b2-command-memory-fix-with-a-persistent-container).
+**What this demonstrates:** a 1.70× observed end-to-end throughput difference between whole deployments, with a workflow-compliance trade-off. Checkpoints, runtime, tool parser and speculative decoding differ; this is not an isolated FP8-versus-FP4 comparison. C1 includes prefill and reasoning tokens, and does not grade answer correctness. Agent tests use simulated tools, not real code execution. Small samples and different work performed prevent a general model ranking or equal-correctness energy claim.
 
-**Provisional agentic choice:** B2 for unattended repair tasks requiring strict verification order; H2 for a faster interactive trial with human review. Both passed the fixed tool-using cases 20/20; H2's fixed-suite score gain came from the no-tool answer gate. The [detailed agentic assessment](docs/benchmarks/2026-11-08-fp8-hybrid-comparison.md#agentic-task-recommendation) explains the separate seeded repair failures and proposes a fair comparison with externally enforced verification. That guarded comparison has not been run.
+[Full comparison and failed startup](docs/benchmarks/2026-11-08-fp8-hybrid-comparison.md) · [Numeric evidence](docs/data/fp8-hybrid-comparison.json) · [Per-workload throughput](docs/figures/throughput-by-workload.svg) · [Memory and energy](docs/figures/memory-energy.svg)
 
-These finite synthetic tests support a faster-response trial with a workflow-compliance trade-off. They do not establish held-out coding correctness, a universal model ranking, full configured-context reliability or sustained-load stability. Historical results, including the earlier fixed 25/25 and seeded 25/30 under scorer 0.7.2, keep their original attribution in the [versioned measurements](docs/benchmarks/2026-11-08-generalization-followup.md). The next evaluation priority is concise answers and fail-before-edit compliance, followed by the [standardized quality roadmap](docs/issues/standardized-quality-evaluations.md).
+## Why verification matters
 
-## Outputs
+![Conceptual animation of a required repair workflow and a missing pre-edit test](docs/figures/verification-workflow.gif)
 
-Each run creates a timestamped folder below `results/` with:
+**Conceptual reconstruction, not a recording.** Three H2 seeded repair episodes omitted the required failing simulated test before editing, even though they obtained a passing post-edit simulated test. No generated code or shell commands ran. The animation illustrates that documented failure pattern, not exact event timings or a complete recorded trace.
 
-- `metadata.json` — model name, advertised context, non-identifying Jetson software information and a checked-in launch-profile hash; **sanitized actual Docker flags** appear when `--container` is supplied.
-- `samples.jsonl` — request timing, token counts, pass/fail, and any errors. **No prompt or generated answer content.**
-- `summary.md` and `summary.json` — scenario-level median latency, TTFT, TTFC, throughput and pass counts; for paired suites, an additional per-pair comparison and median ratio.
-- `cache_evidence` and cache-query/hit counter deltas in paired `samples.jsonl` when exposed by the server; **counters are server-wide**, not request-specific.
+![Seeded outcomes by task family](docs/figures/seeded-outcomes.svg)
 
-**Everything under `results/` is ignored by Git.** To publish an anonymized benchmark, inspect it and explicitly copy only the fields you want to share to a tracked document.
+Both deployments failed all five seeded no-tool brevity gates. H2's fixed-suite advantage came from the separate no-tool answer gate; both passed all 20 fixed tool-using episodes. The seeded repair result suggests testing a trusted runner that enforces verification before edits. That experiment has not been run.
 
-## Running against other models
+[Detailed failure interpretation](docs/benchmarks/2026-11-08-fp8-hybrid-comparison.md#what-the-failures-mean) · [Seeded protocol](docs/AGENT_GENERALIZATION_EVAL.md) · [Static workflow diagram](docs/figures/verification-workflow.svg)
+
+## Shared context, faster first output
+
+![First and follow-up response timing](docs/figures/prefix-overview.svg)
+
+In the separate November 7 study, five identical-prefix pairs showed a median paired TTFT ratio of **8.23×**, and five synthetic agent-style pairs showed **7.18×**. All ten follow-ups had positive server-wide cache-hit counter deltas. These are responsiveness results, not a decoding-speed multiplier or definitive per-request cache attribution.
+
+[Animated measured summary](docs/figures/prefix-responsiveness.gif) · [Exact pair observations](docs/benchmarks/2026-11-07-shockwave-five-pair-prefix-agent.md) · [Cache evidence workflow](docs/diagrams/08-prefix-cache-evidence.md) · [Agent-prefix sequence](docs/diagrams/09-agent-prefix-sequence.md)
+
+## Benchmark suites
+
+![Nine-suite conceptual benchmark map](docs/figures/benchmark-proposal.png)
+
+| Suite | Measures | What it does not claim |
+|---|---|---|
+| `quick` | Streaming TTFT, TTFC, rates, response latency | Coding correctness |
+| `reasoning` | Off / low / medium on the same prompt | Equal-quality outputs |
+| `context` | Synthetic retrieval at increasing lengths | Full configured-context validation |
+| `vision` | Image API response completeness | Visual accuracy |
+| `prefix` | First/repeat pairs and optional cache counters | Per-request cache proof |
+| `agent` | Shared context with changed user tasks | Tool execution or coding accuracy |
+| `tool-routing` | Function selection and argument accuracy | Executed tools |
+| `agent-multiturn` | Fixed simulated workflows and recovery | Real repository modifications |
+| `agent-generalization` | Seeded fixture variants, decoys and evidence gates | Held-out real-repository correctness |
+
+[Visual guide](docs/BENCHMARK_VISUAL_GUIDE.md) · [Animated suite map](docs/figures/benchmark-proposal.gif) · [All workflow diagrams](docs/diagrams/README.md)
+
+## Quick start
+
+Python 3.10+ and an already running compatible vLLM server are required. Use a local endpoint. Do not expose it publicly or start another large model when memory is constrained.
 
 ```bash
-THOR_BENCH_BASE_URL=http://127.0.0.1:8000 \
-THOR_BENCH_MODEL=Qwen3.8-Flash-Next \
-python3 -m thorbench bench --suite quick
-```
-
-Optional `THOR_BENCH_API_KEY` is read from the environment, never stored in reports. Avoid entering it directly into tracked files.
-
-## Reproducing the initial Thor container (optional)
-
-`models/qwen3.8-flash-next/serve.sh` records the baseline launch flags: `GPU_MEMORY_UTILIZATION=0.90`, `MAX_MODEL_LEN=212992`, `--max-num-seqs 1`, and **MTP disabled**. Do **not** run it while your working vLLM container is already active. It is a convenience recipe, not part of benchmark execution.
-
-The baseline includes a known missing MTP safetensors file and a KV-cache limitation at 262K: see [Shockwave baseline](models/qwen3.8-flash-next/baseline.md). Model weights and base images are not included or relicensed.
-
-## GitHub: real PRs, version tags, issues and releases
-
-This standalone repository maintains `main` through pull requests and release tags. Develop changes on feature branches and release only from reviewed, merged `main`. Historical releases remain unchanged.
-
-See [step-by-step release and PR workflow](docs/RELEASING.md), [publication checklist](docs/PUBLICATION_CHECKLIST.md), and [historical 2025–2026 memory-cache issue draft](docs/issues/2025-2026-memory-cache-pressure.md).
-
-## Local development (existing repository)
-
-```bash
-cd ~/Documents/jetson-thor-llm-bench
 python3 -m unittest discover -s tests -v
-git status --short
-git diff --check
+python3 -m thorbench doctor
+python3 -m thorbench bench --suite quick --runs 3
+python3 -m thorbench.tool_eval --runs 2
+python3 -m thorbench.generalize_eval --runs 1
 ```
 
-Review `git diff`, CI and the anonymized metadata before opening a PR. Don't overwrite tags or commit raw results.
+Set `THOR_BENCH_BASE_URL` and `THOR_BENCH_MODEL` as needed. Check the current endpoint, memory and actual deployment before running. A historical configuration is not proof of the active configuration. The default endpoint is localhost; the API key, if required, is read from `THOR_BENCH_API_KEY`. Raw results are ignored by Git.
 
-## Documentation
+[Step-by-step operations guide](docs/OPERATIONS.md) · [Serving profiles](docs/SERVING_PROFILES.md) · [Model integrations](models/README.md) · [Methodology](docs/METHODOLOGY.md)
 
-- [Visual guide to every benchmark](docs/BENCHMARK_VISUAL_GUIDE.md) — all suites, Mermaid workflows, scoring gates, graphs and offline tests
-- [Optimization and feature status matrix](docs/OPTIMIZATION_MATRIX.md) and [Mermaid workflow diagrams](docs/diagrams/README.md)
-- [Methodology and caveats](docs/METHODOLOGY.md)
-- [Qwen3.8 Flash Next model guide](models/qwen3.8-flash-next/README.md) and [observed Shockwave baseline](models/qwen3.8-flash-next/baseline.md)
-- [Public benchmark comparisons and standardized quality roadmap](docs/PUBLIC_BENCHMARKS.md)
-- [FP8-hybrid second benchmark plan](docs/FP8_HYBRID_BENCHMARK_PLAN.md) — pinned artifacts, reproducible download, paired tests and trade-offs
-- [Completed B2 versus FP8-hybrid comparison](docs/benchmarks/2026-11-08-fp8-hybrid-comparison.md) — matched C1 throughput, all nine suites, workflow failures, graphs and operational limits
-- [Releases, PRs and issue publication](docs/RELEASING.md)
-- [Published Shockwave prefix case study](docs/benchmarks/2026-11-07-shockwave-prefix.md) — measured data, illustrated, limitations
-- [Five-pair prefix and agent benchmark](docs/benchmarks/2026-11-07-shockwave-five-pair-prefix-agent.md) — measured TTFT, total latency, cache-counter evidence, graph
-- [Agent/prefix benchmark protocol](docs/AGENT_BENCHMARK_PROTOCOL.md) — repeatable experiments and cache evidence
-- [Tool-routing evaluation protocol](docs/AGENT_TOOL_EVAL.md) — first real tool decision, no execution
-- [Memory/KV-cache A/B evaluation](docs/MEMORY_AB_EXPERIMENT.md) — verified start, tradeoffs, rollback
-- [A versus B2 measurements](docs/benchmarks/2026-11-08-shockwave-b2-vs-a.md) — measured memory, latency and context capacity
-- [Changelog](CHANGELOG.md)
-- [Security and disclosure](SECURITY.md)
-- [Contribution guidelines](CONTRIBUTING.md)
+## Reproduce the figures and inspect the evidence
 
-### References and credit
+```bash
+node scripts/render_publication.cjs
+```
 
-- [NVIDIA Jetson AI Lab — Qwen3.8 Flash Next](https://www.jetson-ai-lab.com/models/qwen3-8-flash-next/)
-- [vLLM online serving documentation](https://docs.vllm.ai/en/stable/serving/online_serving/openai_compatible_server/)
-- [vLLM reasoning streaming responses](https://docs.vllm.ai/en/stable/features/reasoning_outputs/)
-- [Independent Thor deployment / benchmarks](https://github.com/Leibniz-HBI/Qwen3.8-Flash-Next-Jetson-Thor-vLLM) (context only; not copied code)
+The optional Node renderer needs no GPU, weights or private results. It creates SVG charts, a PNG social image, two GIFs and a SHA-256 provenance manifest. Older figures retain their original renderers. See [visual provenance](docs/FIGURE_PROVENANCE.md) and [file index](docs/INDEX.md).
 
-## License
+## What you can learn
 
-MIT for benchmark source only. Model and runtime licenses belong to their owners.
+| Goal | Start here |
+|---|---|
+| Deploy the model safely | [B2 and H2 deployment profiles](docs/SERVING_PROFILES.md), [H2 guide](models/qwen3.8-flash-next-fp8-hybrid/README.md) |
+| Understand every benchmark | [Visual guide](docs/BENCHMARK_VISUAL_GUIDE.md), [methodology](docs/METHODOLOGY.md) |
+| Reproduce speed and agent outcomes | [Full comparison](docs/benchmarks/2026-11-08-fp8-hybrid-comparison.md), [operations](docs/OPERATIONS.md) |
+| Understand cache and memory limits | [Optimization matrix](docs/OPTIMIZATION_MATRIX.md), [memory experiment](docs/MEMORY_AB_EXPERIMENT.md) |
+| Inspect historical scorer changes | [Generalization protocol](docs/AGENT_GENERALIZATION_EVAL.md), [historical results](docs/AGENT_GENERALIZATION_RESULTS.md) |
+| Extend the study | [Guarded verification proposal](docs/benchmarks/2026-11-08-fp8-hybrid-comparison.md#next-controlled-study-agents-with-externally-enforced-verification), [quality roadmap](docs/issues/standardized-quality-evaluations.md) |
+
+**Status:** package v0.7.0 includes generalization scorer 0.7.3, protocol 1. Historical scorer 0.7.2 results are kept separately. The November 8 matched comparison is historical, not a new live measurement. See [release workflow](docs/RELEASING.md) and [changelog](CHANGELOG.md).
+
+## References and license
+
+Independent personal benchmarking study, not affiliated with NVIDIA, Qwen or vLLM. See [public comparison methodology and references](docs/PUBLIC_BENCHMARKS.md), [NVIDIA Jetson AI Lab](https://www.jetson-ai-lab.com/models/qwen3-8-flash-next/) and [vLLM documentation](https://docs.vllm.ai/en/stable/serving/online_serving/openai_compatible_server/).
+
+[MIT](LICENSE) applies to the benchmark source. Model and runtime components retain their own licenses.

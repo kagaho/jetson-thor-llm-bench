@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 535" role="img" aria-labelledby="title desc"><title id="title">Memory and energy trade-offs</title><desc id="desc">Observed during the November 8 deployment comparison Energy includes warmups, excludes startup and C1. Not an equal-correctness energy comparison.</desc><rect width="1000" height="535" rx="14" fill="#101c2c"/>
+<text x="32" y="48" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="700" fill="#eef5fc" text-anchor="start">Memory and energy trade-offs</text>
+<text x="32" y="78" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="400" fill="#b2c5d9" text-anchor="start">Observed during the November 8 deployment comparison</text>
+<text x="32" y="514" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="400" fill="#b2c5d9" text-anchor="start">Energy includes warmups, excludes startup and C1. Not an equal-correctness energy comparison.</text>
+<rect x="32" y="99" width="15" height="15" rx="5" fill="#44b9ef"/>
+<text x="56" y="112" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#b2c5d9" text-anchor="start">B2 NVFP4</text>
+<rect x="262" y="99" width="15" height="15" rx="5" fill="#ffbd69"/>
+<text x="286" y="112" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#b2c5d9" text-anchor="start">H2 FP8 hybrid</text>
+<text x="32" y="161" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" fill="#eef5fc" text-anchor="start">Model-loading memory</text>
+<rect x="320" y="142" width="510" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="142" width="415.82" height="19" rx="5" fill="#44b9ef"/>
+<text x="744.8199999999999" y="158" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">97.84 GiB</text>
+<rect x="320" y="170" width="510" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="170" width="326.1875" height="19" rx="5" fill="#ffbd69"/>
+<text x="655.1875" y="186" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">76.75 GiB</text>
+<text x="32" y="249" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" fill="#eef5fc" text-anchor="start">Peak host RAM</text>
+<rect x="320" y="230" width="510" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="230" width="460.63592307692306" height="19" rx="5" fill="#44b9ef"/>
+<text x="789.6359230769231" y="246" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">117417.00 MB</text>
+<rect x="320" y="258" width="510" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="258" width="385.5129230769231" height="19" rx="5" fill="#ffbd69"/>
+<text x="714.512923076923" y="274" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">98268.00 MB</text>
+<text x="32" y="337" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" fill="#eef5fc" text-anchor="start">Mean board input</text>
+<rect x="320" y="318" width="510" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="318" width="386.64000000000004" height="19" rx="5" fill="#44b9ef"/>
+<text x="715.6400000000001" y="334" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">64.44 W</text>
+<rect x="320" y="346" width="510" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="346" width="406.638" height="19" rx="5" fill="#ffbd69"/>
+<text x="735.6379999999999" y="362" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">67.77 W</text>
+<text x="32" y="425" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" fill="#eef5fc" text-anchor="start">Board-input energy</text>
+<rect x="320" y="406" width="510" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="406" width="397.36799999999994" height="19" rx="5" fill="#44b9ef"/>
+<text x="726.3679999999999" y="422" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">26.49 Wh</text>
+<rect x="320" y="434" width="510" height="19" rx="5" fill="#192c42"/>
+<rect x="320" y="434" width="221.24399999999997" height="19" rx="5" fill="#ffbd69"/>
+<text x="550.2439999999999" y="450" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="600" fill="#eef5fc" text-anchor="start">14.75 Wh</text>
+</svg>
